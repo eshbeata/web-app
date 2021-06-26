@@ -1,0 +1,89 @@
+<div class="container m-b-20">
+
+    <mat-card>
+
+        <form [formGroup]="creditRiskForm" (ngSubmit)="submit()">
+
+          <mat-card-content>
+
+            <div fxLayout="column">
+
+              <mat-form-field>
+                <mat-label>Age</mat-label>
+                <input required matInput type="number" formControlName="age">
+                <mat-error *ngIf="creditRiskForm.controls.age.hasError('required')">
+                  Age is <strong>required</strong>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Gender</mat-label>
+                <mat-select required formControlName="sex">
+                  <mat-option *ngFor="let gender of templateData?.genderOptions" [value]="gender?.name">
+                    {{ gender?.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="creditRiskForm.controls.sex.hasError('required')">
+                  Gender is <strong>required</strong>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Job</mat-label>
+                <input required matInput type="text" formControlName="job">
+                <mat-error *ngIf="creditRiskForm.controls.job.hasError('required')">
+                  Job is <strong>required</strong>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Housing</mat-label>
+                <mat-select required formControlName="housing">
+                  <mat-option *ngFor="let housing of templateData?.housingOptions" [value]="housing?.name">
+                    {{ housing?.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="creditRiskForm.controls.housing.hasError('required')">
+                  Housing is <strong>required</strong>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Credit Amount</mat-label>
+                <input required matInput type="number" formControlName="creditAmount">
+                <mat-error *ngIf="creditRiskForm.controls.creditAmount.hasError('required')">
+                  Credit Amount is <strong>required</strong>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Duration</mat-label>
+                <input required matInput type="number" formControlName="duration">
+                <mat-error *ngIf="creditRiskForm.controls.duration.hasError('required')">
+                  Duration is <strong>required</strong>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Purpose</mat-label>
+                <input required matInput type="text" formControlName="purpose">
+                <mat-error *ngIf="creditRiskForm.controls.purpose.hasError('required')">
+                  Purpose is <strong>required</strong>
+                </mat-error>
+              </mat-form-field>
+
+            </div>
+
+            <mat-card-actions fxLayout="row" fxLayout.xs="column" fxLayoutAlign="center" fxLayoutGap="5px">
+              <button type="button" mat-raised-button [routerLink]="['../../general']">Cancel</button>
+              <button mat-raised-button color="primary" [disabled]="!creditRiskForm.valid"
+                *mifosxHasPermission="'ASSESS_CREDIT_RISK'" (click)="submit()">Submit</button>
+            </mat-card-actions>
+
+          </mat-card-content>
+
+        </form>
+
+    </mat-card>
+
+</div>

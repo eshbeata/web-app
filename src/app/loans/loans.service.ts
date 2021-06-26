@@ -347,6 +347,21 @@ export class LoansService {
     return this.http.post(`/templates/${templateId}`, {}, { params: httpParams, responseType: 'text'});
   }
 
+  getCreditRiskTemplateData(loanId: any): Observable<any> {
+    return this.http.get(`/loans/${loanId}/scorecard/template`);
+  }
+
+  /**
+   * Create Loan Collateral.
+   * @param {string} loanId Loan Id.
+   * @param {any} collateralData Collateral Data.
+   * @returns {Observable<any>}
+   */
+   assessCreditRisk(loanId: string, scorecardData: any): Observable<any> {
+    const httpParams = new HttpParams().set('command', 'assessrisk')
+    return this.http.post(`/loans/${loanId}/scorecard`, scorecardData, { params: httpParams });
+  }
+
   /**
    * Get Loan Charge Aproval template.
    * @param {string} loanId Loan Id.

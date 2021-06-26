@@ -182,6 +182,10 @@ export class LoansAccountButtonConfiguration {
                         taskPermissionName: 'CREATE_GUARANTOR',
                     },
                     {
+                        name: 'Assess credit risk',
+                        taskPermissionName: 'ASSESS_CREDIT_RISK',
+                    },
+                    {
                         name: 'Loan Screen Reports',
                         taskPermissionName: 'READ_LOAN',
                     },

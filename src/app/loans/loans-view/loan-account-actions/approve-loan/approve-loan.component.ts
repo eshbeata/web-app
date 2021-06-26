@@ -52,6 +52,7 @@ export class ApproveLoanComponent implements OnInit {
   }
 
   ngOnInit() {
+    console.log(this);
     this.setApproveLoanForm();
     this.loanService.getApproveAssociationsDetails(this.loanId).subscribe((response: any) => {
       this.associationData = response;

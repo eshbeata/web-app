@@ -56,6 +56,7 @@ export class CreateGuarantorComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    console.log(this.dataObject);
     this.createNewGuarantorForm();
     this.setNewGuarantorDetailsForm();
     this.buildDependencies();

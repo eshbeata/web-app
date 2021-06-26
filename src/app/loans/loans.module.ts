@@ -54,6 +54,7 @@ import { LoanDocumentsTabComponent } from './loans-view/loan-documents-tab/loan-
 import { ViewChargeComponent } from './loans-view/view-charge/view-charge.component';
 import { StandingInstructionsTabComponent } from './loans-view/standing-instructions-tab/standing-instructions-tab.component';
 import { EditLoansAccountComponent } from './edit-loans-account/edit-loans-account.component';
+import { AssessCreditRiskComponent } from './loans-view/loan-account-actions/assess-credit-risk/assess-credit-risk.component';
 import { LoanScreenReportsComponent } from './loans-view/loan-account-actions/loan-screen-reports/loan-screen-reports.component';
 import { ApproveLoanComponent } from './loans-view/loan-account-actions/approve-loan/approve-loan.component';
 import { ViewRecieptComponent } from './loans-view/transactions/view-reciept/view-reciept.component';
@@ -121,6 +122,7 @@ import { LoanAccountLoadDocumentsDialogComponent } from './custom-dialog/loan-ac
     LoanAccountLoadDocumentsDialogComponent,
     StandingInstructionsTabComponent,
     EditLoansAccountComponent,
+    AssessCreditRiskComponent,
     LoanScreenReportsComponent,
     ApproveLoanComponent,
     ViewChargeComponent,

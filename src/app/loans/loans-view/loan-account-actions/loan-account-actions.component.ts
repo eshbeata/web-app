@@ -32,6 +32,7 @@ export class LoanAccountActionsComponent {
             'Disburse': boolean,
             'Withdrawn by Client': boolean,
             'Undo Disbursal': boolean,
+            'Assess credit risk': boolean,
             'Loan Screen Reports': boolean,
             'Approve': boolean,
             'Add Loan Charge': boolean } = {
@@ -54,6 +55,7 @@ export class LoanAccountActionsComponent {
               'Disburse':  false,
               'Withdrawn by Client':  false,
               'Undo Disbursal':  false,
+              'Assess credit risk': false,
               'Loan Screen Reports':  false,
               'Approve':  false,
               'Add Loan Charge':  false };
