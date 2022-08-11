@@ -73,19 +73,39 @@
 
   <mat-card-content>
     <nav mat-tab-nav-bar class="navigation-tabs">
-      <a mat-tab-link [routerLink]="['./general']" routerLinkActive #general="routerLinkActive"
-        [active]="general.isActive">
-        General
-      </a>
-      <a mat-tab-link [routerLink]="['./accountdetail']" routerLinkActive #accountdetail="routerLinkActive"
-        [active]="accountdetail.isActive">
-        Account Details
-      </a>
-      <ng-container *ngIf="loanDetailsData.originalSchedule">
-        <a mat-tab-link [routerLink]="['./original-schedule']" routerLinkActive #originalSchedule="routerLinkActive"
-          [active]="originalSchedule.isActive">
-          Original Schedule
-        </a>
+  	  <a mat-tab-link [routerLink]="['./general']" routerLinkActive #general="routerLinkActive" [active]="general.isActive">
+		General
+	  </a>
+	  <a mat-tab-link [routerLink]="['./accountdetail']" routerLinkActive #accountdetail="routerLinkActive" [active]="accountdetail.isActive">
+		Account Details
+	  </a>
+	  <a mat-tab-link *ngIf="loanDetailsData.scorecard" [routerLink]="['./creditscorecard']" routerLinkActive #creditscorecard="routerLinkActive" [active]="creditscorecard.isActive">
+		Credit Scorecard
+	  </a>
+	  <ng-container *ngIf="loanDetailsData.originalSchedule">
+		<a mat-tab-link [routerLink]="['./original-schedule']" routerLinkActive #originalSchedule="routerLinkActive" [active]="originalSchedule.isActive">
+		  Original Schedule
+		</a>
+	  </ng-container>
+	  <a mat-tab-link [routerLink]="['./repayment-schedule']" routerLinkActive #repaymentSchedule="routerLinkActive" [active]="repaymentSchedule.isActive">
+		Repayment Schedule
+	  </a>
+	  <ng-container *ngIf="loanDetailsData.transactions">
+		<a mat-tab-link [routerLink]="['./transactions']" routerLinkActive #transactions="routerLinkActive" [active]="transactions.isActive">
+		  Transactions
+		</a>
+	  </ng-container>
+	  <ng-container *ngIf="loanDetailsData.collateral">
+		<a mat-tab-link [routerLink]="['./loan-collateral']" routerLinkActive #loanCollateralDetails="routerLinkActive"
+	  	  [active]="loanCollateralDetails.isActive">
+	      Loan Collateral Details
+		</a>
+	  </ng-container>
+	  <ng-container *ngIf="loanDetailsData.multiDisburseLoan">
+		<a mat-tab-link [routerLink]="['./loan-tranche-details']" routerLinkActive #loanTrancheDetails="routerLinkActive" [active]="loanTrancheDetails.isActive">
+		  Loan Tranche Details
+		</a>
+
       </ng-container>
       <a mat-tab-link [routerLink]="['./repayment-schedule']" routerLinkActive #repaymentSchedule="routerLinkActive"
         [active]="repaymentSchedule.isActive">

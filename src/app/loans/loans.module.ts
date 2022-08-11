@@ -59,6 +59,8 @@ import { ViewRecieptComponent } from './loans-view/transactions/view-reciept/vie
 import { ExportTransactionsComponent } from './loans-view/transactions/export-transactions/export-transactions.component';
 import { ViewTransactionComponent } from './loans-view/transactions/view-transaction/view-transaction.component';
 import { EditTransactionComponent } from './loans-view/transactions/edit-transaction/edit-transaction.component';
+import { CreditScorecardComponent } from './loans-view/credit-scorecard/credit-scorecard.component';
+import { LoansAccountScorecardStepComponent } from './loans-account-stepper/loans-account-scorecard-step/loans-account-scorecard-step.component';
 
 /** Dialog Components */
 import { LoansAccountViewGuarantorDetailsDialogComponent } from './custom-dialog/loans-account-view-guarantor-details-dialog/loans-account-view-guarantor-details-dialog.component';
@@ -128,7 +130,10 @@ import { LoanCreditBalanceRefundComponent } from './loans-view/loan-account-acti
     EditTransactionComponent,
     ViewRecieptComponent,
     ExportTransactionsComponent,
-    LoanCreditBalanceRefundComponent
+    LoanCreditBalanceRefundComponent,
+    LoansAccountScorecardStepComponent,
+    CreditScorecardComponent
+
   ],
   providers: [ ],
 })

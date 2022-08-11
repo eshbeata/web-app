@@ -106,6 +106,8 @@ import { EditRangeComponent } from './manage-delinquency-buckets/delinquency-ran
 import { ViewBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/view-bucket/view-bucket.component';
 import { CreateBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/create-bucket/create-bucket.component';
 import { EditBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/edit-bucket/edit-bucket.component';
+import { LoanProductScorecardFeaturesStepComponent } from './loan-products/loan-product-stepper/loan-product-scorecard-features-step/loan-product-scorecard-features-step.component';
+
 
 /**
  * Products Module
@@ -127,6 +129,7 @@ import { EditBucketComponent } from './manage-delinquency-buckets/delinquency-bu
     LoanProductTermsStepComponent,
     LoanProductSettingsStepComponent,
     LoanProductChargesStepComponent,
+    LoanProductScorecardFeaturesStepComponent,
     LoanProductAccountingStepComponent,
     LoanProductPreviewStepComponent,
     CreateLoanProductComponent,
