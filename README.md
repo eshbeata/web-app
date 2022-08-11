@@ -60,6 +60,8 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
 
+Run `npm run build:prod` to build a production artifacts Instead.
+
 ### Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the
@@ -77,6 +79,20 @@ Follow the given instructions for your operating system to setup a local server 
 For connecting to server running elsewhere update the base API URL and/or tenant identifier property in the `environments/environment.ts` file and `environments/environment.prod.ts` file for development and production use respectively.
 
 By default OAuth2 is disabled. To enable it, change the value of oauth.enabled property to true in the `environments/environment.ts` file and `environments/environment.prod.ts` file for development and production use respectively.
+
+### Docker
+
+
+To locally build this Docker image from source (after `git clone` this repo), run:
+```
+docker build -t openmf/web-app:latest .
+```
+You can then run a Docker Container from the image above like this:
+```
+docker run -d -p 4200:80 openmf/web-app:latest
+```
+
+Access the webapp on http://localhost:4200 in your browser.
 
 
 ## Want to help? [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/openMF/web-app/issues)
