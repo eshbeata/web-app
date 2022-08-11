@@ -1,7 +1,7 @@
 /** Angular Imports */
 import { Component, OnInit, Input, OnChanges } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { FormGroup, FormBuilder, Validators, FormArray } from '@angular/forms';
+import { SettingsService } from 'app/settings/settings.service';
 
 /**
  * Create Loans Account Terms Step
@@ -17,11 +17,13 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
   @Input() loansAccountProductTemplate: any;
   /** Loans Account Template */
   @Input() loansAccountTemplate: any;
+  /** Is Multi Disburse Loan  */
+  @Input() multiDisburseLoan: any;
 
   /** Minimum date allowed. */
   minDate = new Date(2000, 0, 1);
   /** Maximum date allowed. */
-  maxDate = new Date();
+  maxDate = new Date(2100, 0, 1);
   /** Loans Account Terms Form */
   loansAccountTermsForm: FormGroup;
   /** Term Frequency Type Data */
@@ -44,12 +46,10 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
   /**
    * Create Loans Account Terms Form
    * @param formBuilder FormBuilder
-   * @param route Route
-   * @param router Router
+   * @param {SettingsService} settingsService SettingsService
    */
   constructor(private formBuilder: FormBuilder,
-              private route: ActivatedRoute,
-              private router: Router) {
+      private settingsService: SettingsService) {
     this.createloansAccountTermsForm();
   }
   /**
@@ -85,6 +85,7 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     if (this.loansAccountTemplate) {
       if (this.loansAccountTemplate.loanProductId) {
         this.loansAccountTermsForm.patchValue({
@@ -92,6 +93,29 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
         });
       }
     }
+    this.createloansAccountTermsForm();
+    this.setCustomValidators();
+  }
+
+  /** Custom Validators for the form */
+  setCustomValidators() {
+    const repaymentFrequencyNthDayType = this.loansAccountTermsForm.get('repaymentFrequencyNthDayType');
+    const repaymentFrequencyDayOfWeekType = this.loansAccountTermsForm.get('repaymentFrequencyDayOfWeekType');
+
+    this.loansAccountTermsForm.get('repaymentFrequencyType').valueChanges
+      .subscribe(repaymentFrequencyType => {
+
+        if (repaymentFrequencyType === 2) {
+          repaymentFrequencyNthDayType.setValidators([Validators.required]);
+          repaymentFrequencyDayOfWeekType.setValidators([Validators.required]);
+        } else {
+          repaymentFrequencyNthDayType.setValidators(null);
+          repaymentFrequencyDayOfWeekType.setValidators(null);
+        }
+
+        repaymentFrequencyNthDayType.updateValueAndValidity();
+        repaymentFrequencyDayOfWeekType.updateValueAndValidity();
+      });
   }
 
   /** Create Loans Account Terms Form */
@@ -103,8 +127,9 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
       'numberOfRepayments': ['', Validators.required],
       'repaymentEvery': ['', Validators.required],
       'repaymentFrequencyType': ['', Validators.required],
-      'repaymentFrequencyNthDayType': ['', Validators.required],
-      'repaymentFrequencyDayOfWeekType': ['', Validators.required],
+      'disbursementData': this.formBuilder.array([]),
+      'repaymentFrequencyNthDayType': [''],
+      'repaymentFrequencyDayOfWeekType': [''],
       'repaymentsStartingFromDate': [''],
       'interestChargedFromDate': [''],
       'interestRatePerPeriod': [''],
@@ -124,9 +149,44 @@ export class LoansAccountTermsStepComponent implements OnInit, OnChanges {
       'loanIdToClose': [''],
       'fixedEmiAmount': [''],
       'isTopup': [''],
-      'maxOutstandingLoanBalance': [''],
-      'recalculationCompoundingFrequencyDate': ['']
+      'maxOutstandingLoanBalance': ['']
     });
+  }
+
+  /**
+   * Creates the Disbursement Data form.
+   * @returns {FormGroup} Disbursement Data form.
+   */
+  createDisbursementDataForm(): FormGroup {
+    return this.formBuilder.group({
+      'expectedDisbursementDate': [new Date()],
+      'principal': ['']
+    });
+  }
+
+  /**
+   * Gets the Disbursement Data form array.
+   * @returns {FormArray} Disbursement Data form array.
+   */
+    get disbursementData(): FormArray {
+    return this.loansAccountTermsForm.get('disbursementData') as FormArray;
+  }
+
+  /**
+   * Adds the Disbursement Data entry form to given Disbursement Data entry form array.
+   * @param {FormArray} disbursementDataFormArray Given affected gl entry form array (debit/credit).
+   */
+   addDisbursementDataEntry(disbursementDataFormArray: FormArray) {
+    disbursementDataFormArray.push(this.createDisbursementDataForm());
+  }
+
+  /**
+   * Removes the Disbursement Data entry form from given Disbursement Data entry form array at given index.
+   * @param {FormArray} disbursementDataFormArray Given Disbursement Data entry form array.
+   * @param {number} index Array index from where Disbursement Data entry form needs to be removed.
+   */
+   removeDisbursementDataEntry(disbursementDataFormArray: FormArray, index: number) {
+    disbursementDataFormArray.removeAt(index);
   }
 
   /**

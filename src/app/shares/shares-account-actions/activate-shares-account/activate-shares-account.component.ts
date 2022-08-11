@@ -1,11 +1,12 @@
 /** Angular Imports */
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 /** Custom Services */
 import { SharesService } from 'app/shares/shares.service';
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Activate Shares Account Component
@@ -29,15 +30,17 @@ export class ActivateSharesAccountComponent implements OnInit {
   /**
    * @param {FormBuilder} formBuilder Form Builder
    * @param {SharesService} sharesService Shares Service
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
+   * @param {SettingsService} settingsService Settings Service.
    */
   constructor(private formBuilder: FormBuilder,
               private sharesService: SharesService,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private route: ActivatedRoute,
-              private router: Router) {
+              private router: Router,
+              private settingsService: SettingsService) {
     this.accountId = this.route.parent.snapshot.params['shareAccountId'];
   }
 
@@ -45,6 +48,7 @@ export class ActivateSharesAccountComponent implements OnInit {
    * Creates the activate shares form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createActivateSharesAccountForm();
   }
 
@@ -62,15 +66,15 @@ export class ActivateSharesAccountComponent implements OnInit {
    * if successful redirects to the share account.
    */
   submit() {
-    // TODO: Update once language and date settings are setup
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const activateSharesAccountFormData = this.activateSharesAccountForm.value;
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const prevActivatedDate: Date = this.activateSharesAccountForm.value.activatedDate;
-    this.activateSharesAccountForm.patchValue({
-      activatedDate: this.datePipe.transform(prevActivatedDate, dateFormat),
-    });
+    if (activateSharesAccountFormData.activatedDate instanceof Date) {
+      activateSharesAccountFormData.activatedDate = this.dateUtils.formatDate(prevActivatedDate, dateFormat);
+    }
     const data = {
-      ...this.activateSharesAccountForm.value,
+      ...activateSharesAccountFormData,
       dateFormat,
       locale
     };

@@ -40,6 +40,22 @@
             <p matLine>Define charges/penalties for loan products, savings and deposit products</p>
           </mat-list-item>
 
+          <mat-list-item [routerLink]="['collaterals']">
+            <mat-icon matListIcon>
+              <fa-icon icon="money-bill-alt" size="sm"></fa-icon>
+            </mat-icon>
+            <h4 matLine>Collateral Management</h4>
+            <p matLine>Define collaterals for Collateral Management</p>
+          </mat-list-item>
+
+          <mat-list-item [routerLink]="['delinquency-bucket-configurations']" *mifosxHasPermission="'READ_DELINQUENCY_BUCKET'">
+            <mat-icon matListIcon>
+              <fa-icon icon="briefcase" size="sm"></fa-icon>
+            </mat-icon>
+            <h4 matLine>Delinquency Buckets</h4>
+            <p matLine>Define delinquency day ranges and bucket set for loan products</p>
+          </mat-list-item>
+
         </mat-nav-list>
 
       </div>

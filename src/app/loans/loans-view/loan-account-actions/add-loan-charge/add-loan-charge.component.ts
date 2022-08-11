@@ -2,11 +2,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Custom Services */
 import { LoansService } from '../../../loans.service';
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Create Add Loan Charge component.
@@ -54,7 +54,7 @@ export class AddLoanChargeComponent implements OnInit {
   constructor(private formBuilder: FormBuilder,
               private route: ActivatedRoute,
               private router: Router,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private loansService: LoansService,
               private settingsService: SettingsService) {
     this.route.data.subscribe((data: { actionButtonData: any }) => {
@@ -67,6 +67,7 @@ export class AddLoanChargeComponent implements OnInit {
    * Creates the Loan Charge form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createLoanChargeForm();
     this.loanChargeForm.controls.chargeId.valueChanges.subscribe(chargeId => {
       const chargeDetails = this.loanChargeOptions.find(option => {
@@ -98,16 +99,19 @@ export class AddLoanChargeComponent implements OnInit {
   }
 
   submit() {
-    const prevDueDate: Date = this.loanChargeForm.value.dueDate;
-    // TODO: Update once language and date settings are setup
+    const loanChargeFormData = this.loanChargeForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
-    this.loanChargeForm.patchValue({
-      dueDate: this.datePipe.transform(prevDueDate, dateFormat)
-    });
-    const loanCharge = this.loanChargeForm.value;
-    loanCharge.locale = this.settingsService.language.code;
-    loanCharge.dateFormat = dateFormat;
-    this.loansService.createLoanCharge(this.loanId, 'charges', loanCharge).subscribe(res => {
+    const prevDueDate: Date = this.loanChargeForm.value.dueDate;
+    if (loanChargeFormData.dueDate instanceof Date) {
+      loanChargeFormData.dueDate = this.dateUtils.formatDate(prevDueDate, dateFormat);
+    }
+    const data = {
+      ...loanChargeFormData,
+      dateFormat,
+      locale
+    };
+    this.loansService.createLoanCharge(this.loanId, 'charges', data).subscribe(res => {
       this.router.navigate(['../../general'], { relativeTo: this.route });
     });
   }

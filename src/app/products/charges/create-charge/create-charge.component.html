@@ -109,7 +109,7 @@
               </mat-error>
             </mat-form-field>
 
-            <mat-form-field *ngIf="chargeForm.controls.chargeTimeType.value === 6 || chargeForm.controls.chargeTimeType.value === 7" fxFlex="48%">
+            <mat-form-field (click)="dueDatePicker.open()" *ngIf="chargeForm.controls.chargeTimeType.value === 6 || chargeForm.controls.chargeTimeType.value === 7" fxFlex="48%">
               <mat-label>Due Date</mat-label>
               <input matInput [min]="minDate" [max]="maxDate" [matDatepicker]="dueDatePicker" required formControlName="feeOnMonthDay">
               <mat-datepicker-toggle matSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
@@ -145,6 +145,16 @@
               <mat-error *ngIf="chargeForm.controls.amount.hasError('pattern') && currencyDecimalPlaces === undefined">
                 Amount must be <strong>a positive number</strong>
               </mat-error>
+            </mat-form-field>
+
+            <mat-form-field fxFlex="48%">
+              <mat-label>Minimum Charge Cap</mat-label>
+              <input matInput formControlName="minCap">
+            </mat-form-field>
+
+            <mat-form-field fxFlex="48%">
+              <mat-label>Maximum Charge Cap</mat-label>
+              <input matInput formControlName="maxCap">
             </mat-form-field>
 
             <div fxFlex="48%" fxLayout="row" fxLayoutGap="2%" fxLayout.lt-md="column">

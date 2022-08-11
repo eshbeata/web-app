@@ -8,9 +8,9 @@
 
         <div fxLayout="column">
 
-          <mat-form-field>
+          <mat-form-field (click)="rescheduleDatePicker.open()">
             <mat-label>Reschedule from Installment On</mat-label>
-            <input matInput [min]="minDate" [max]="maxDate" [matDatepicker]="rescheduleDatePicker" required
+            <input matInput [min]="minDate" [matDatepicker]="rescheduleDatePicker" required
               formControlName="rescheduleFromDate">
             <mat-datepicker-toggle matSuffix [for]="rescheduleDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #rescheduleDatePicker></mat-datepicker>
@@ -31,7 +31,7 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field (click)="submittedDatePicker.open()">
             <mat-label>Submitted On</mat-label>
             <input matInput [min]="minDate" [matDatepicker]="submittedDatePicker" required
               formControlName="submittedOnDate">
@@ -49,10 +49,10 @@
 
           <mat-checkbox [formControl]="changeRepaymentDate"> Change Repayment Date </mat-checkbox>
 
-          <ng-container *ngIf="changeRepaymentDate.value">
+          <ng-container *ngIf="changeRepaymentDate.value" (click)="installmentrescheduledDatePicker.open()">
             <mat-form-field>
               <mat-label>Installment Rescheduled to</mat-label>
-              <input matInput [min]="minDate" [max]="maxDate" [matDatepicker]="installmentrescheduledDatePicker"
+              <input matInput [min]="minDate" [matDatepicker]="installmentrescheduledDatePicker"
                 formControlName="adjustedDueDate">
               <mat-datepicker-toggle matSuffix [for]="installmentrescheduledDatePicker"></mat-datepicker-toggle>
               <mat-datepicker #installmentrescheduledDatePicker></mat-datepicker>

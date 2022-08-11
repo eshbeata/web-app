@@ -2,10 +2,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { Dates } from 'app/core/utils/dates';
 
 /** Custom Services */
 import { SavingsService } from 'app/savings/savings.service';
+import { SettingsService } from 'app/settings/settings.service';
 
 /**
  * Add Fixed Deposits Charge component.
@@ -36,15 +37,17 @@ export class AddChargeFixedDepositsAccountComponent implements OnInit {
    * @param {FormBuilder} formBuilder Form Builder
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {SavingsService} savingsService Savings Service
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private datePipe: DatePipe,
-    private savingsService: SavingsService
+    private dateUtils: Dates,
+    private savingsService: SavingsService,
+    private settingsService: SettingsService
   ) {
     this.route.data.subscribe((data: { fixedDepositsAccountActionData: any }) => {
       this.savingsChargeOptions = data.fixedDepositsAccountActionData.chargeOptions;
@@ -56,6 +59,7 @@ export class AddChargeFixedDepositsAccountComponent implements OnInit {
    * Creates the Fixed Deposits Charge form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createFixedDepositsChargeForm();
     this.buildDependencies();
   }
@@ -112,7 +116,7 @@ export class AddChargeFixedDepositsAccountComponent implements OnInit {
    */
   submit() {
     const savingsCharge = this.fixedDepositsChargeForm.value;
-    savingsCharge.locale = 'en';
+    savingsCharge.locale = this.settingsService.language.code;
     if (!savingsCharge.feeInterval) {
       savingsCharge.feeInterval = this.chargeDetails.feeInterval;
     }
@@ -122,14 +126,14 @@ export class AddChargeFixedDepositsAccountComponent implements OnInit {
         savingsCharge.monthDayFormat = monthDayFormat;
         if (savingsCharge.feeOnMonthDay) {
           const prevDate = this.fixedDepositsChargeForm.value.feeOnMonthDay;
-          savingsCharge.feeOnMonthDay = this.datePipe.transform(prevDate, monthDayFormat);
+          savingsCharge.feeOnMonthDay = this.dateUtils.formatDate(prevDate, monthDayFormat);
         }
       } else {
-        const dateFormat = 'yyyy-MM-dd';
+        const dateFormat = this.settingsService.dateFormat;
         savingsCharge.dateFormat = dateFormat;
         if (savingsCharge.dueDate) {
           const prevDate = this.fixedDepositsChargeForm.value.dueDate;
-          savingsCharge.dueDate = this.datePipe.transform(prevDate, dateFormat);
+          savingsCharge.dueDate = this.dateUtils.formatDate(prevDate, dateFormat);
         }
       }
     }

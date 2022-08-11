@@ -5,7 +5,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 /** Custom Services */
 import { AccountingService } from '../../accounting.service';
-
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 /**
  * Create closure component.
  */
@@ -29,13 +30,16 @@ export class CreateClosureComponent implements OnInit {
    * Retrieves the offices data from `resolve`.
    * @param {FormBuilder} formBuilder Form Builder.
    * @param {AccountingService} accountingService Accounting Service.
+   * @param {SettingsService} settingsService Settings Service.
    * @param {ActivatedRoute} route Activated Route.
    * @param {Router} router Router for navigation.
    */
   constructor(private formBuilder: FormBuilder,
-              private accountingService: AccountingService,
-              private route: ActivatedRoute,
-              private router: Router) {
+    private accountingService: AccountingService,
+    private settingsService: SettingsService,
+    private dateUtils: Dates,
+    private route: ActivatedRoute,
+    private router: Router) {
     this.route.data.subscribe((data: { offices: any }) => {
       this.officeData = data.offices;
     });
@@ -45,6 +49,7 @@ export class CreateClosureComponent implements OnInit {
    * Creates the accounting closure form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createAccountingClosureForm();
   }
 
@@ -66,19 +71,10 @@ export class CreateClosureComponent implements OnInit {
   submit() {
     const accountingClosure = this.accountingClosureForm.value;
     // TODO: Update once language and date settings are setup
-    accountingClosure.locale = 'en';
-    accountingClosure.dateFormat = 'yyyy-MM-dd';
-    if (accountingClosure.closingDate instanceof Date) {
-      let day = accountingClosure.closingDate.getDate();
-      let month = accountingClosure.closingDate.getMonth() + 1;
-      const year = accountingClosure.closingDate.getFullYear();
-      if (day < 10) {
-        day = `0${day}`;
-      }
-      if (month < 10) {
-        month = `0${month}`;
-      }
-      accountingClosure.closingDate = `${year}-${month}-${day}`;
+    accountingClosure.locale = this.settingsService.language.code;
+    accountingClosure.dateFormat = this.settingsService.dateFormat;
+    if (accountingClosure.closingDate) {
+      accountingClosure.closingDate = this.dateUtils.formatDate(accountingClosure.closingDate, this.settingsService.dateFormat);
     }
     this.accountingService.createAccountingClosure(accountingClosure).subscribe((response: any) => {
       this.router.navigate(['../view', response.resourceId], { relativeTo: this.route });

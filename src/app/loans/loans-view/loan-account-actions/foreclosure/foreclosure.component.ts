@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LoansService } from 'app/loans/loans.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Custom Services */
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 @Component({
   selector: 'mifosx-foreclosure',
@@ -13,8 +13,6 @@ import { SettingsService } from 'app/settings/settings.service';
   styleUrls: ['./foreclosure.component.scss']
 })
 export class ForeclosureComponent implements OnInit {
-
-
   loanId: any;
   foreclosureForm: FormGroup;
   /** Minimum Date allowed. */
@@ -23,7 +21,6 @@ export class ForeclosureComponent implements OnInit {
   maxDate = new Date();
   foreclosuredata: any;
   paymentTypes: any;
-
 
   /**
    * @param {FormBuilder} formBuilder Form Builder.
@@ -36,12 +33,13 @@ export class ForeclosureComponent implements OnInit {
     private loanService: LoansService,
     private route: ActivatedRoute,
     private router: Router,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private settingsService: SettingsService) {
       this.loanId = this.route.parent.snapshot.params['loanId'];
     }
 
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createforeclosureForm();
     this.onChanges();
   }
@@ -68,7 +66,7 @@ export class ForeclosureComponent implements OnInit {
 
   retrieveLoanForeclosureTemplate(val: any) {
     const dateFormat = this.settingsService.dateFormat;
-    const transactionDateFormatted = this.datePipe.transform(val, dateFormat);
+    const transactionDateFormatted = this.dateUtils.formatDate(val, dateFormat);
     const data = {
       command: 'foreclosure',
       dateFormat: this.settingsService.dateFormat,
@@ -108,19 +106,20 @@ export class ForeclosureComponent implements OnInit {
   }
 
   submit() {
-    const transactionDate = this.foreclosureForm.value.transactionDate;
+    const foreclosureFormData = this.foreclosureForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
-    this.foreclosureForm.patchValue({
-      transactionDate: this.datePipe.transform(transactionDate, dateFormat)
-    });
-    const formData = {
-      transactionDate: this.foreclosureForm.value.transactionDate,
-      locale: this.settingsService.language.code,
-      dateFormat: dateFormat,
-      note: this.foreclosureForm.value.note
+    const prevTransactionDate = this.foreclosureForm.value.transactionDate;
+    if (foreclosureFormData.transactionDate instanceof Date) {
+      foreclosureFormData.transactionDate = this.dateUtils.formatDate(prevTransactionDate, dateFormat);
+    }
+    const data = {
+      ...foreclosureFormData,
+      dateFormat,
+      locale
     };
 
-    this.loanService.loanForclosureData(this.loanId, formData)
+    this.loanService.loanForclosureData(this.loanId, data)
       .subscribe((response: any) => {
         this.router.navigate([`../../general`], { relativeTo: this.route });
       });

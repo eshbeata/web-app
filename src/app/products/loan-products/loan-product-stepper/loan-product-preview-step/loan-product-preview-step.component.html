@@ -72,6 +72,17 @@
   </div>
 
   <div fxFlexFill>
+    <span fxFlex="40%">Allow Approved / Disbursed Amounts Over Applied:</span>
+    <span fxFlex="60%">{{ loanProduct.allowApprovedDisbursedAmountsOverApplied ? 'Yes' : 'No' }}</span>
+  </div>
+
+  <div fxFlexFill *ngIf="loanProduct.allowApprovedDisbursedAmountsOverApplied">
+    <span fxFlex="40%">Over Applied:</span>
+    <span fxFlex="60%" *ngIf="loanProduct.overAppliedCalculationType === 'percentage'">{{ loanProduct.overAppliedNumber }} %</span>
+    <span fxFlex="60%" *ngIf="loanProduct.overAppliedCalculationType === 'flat'">{{ loanProduct.overAppliedNumber }} {{ loanProduct.currencyCode }}</span>
+</div>
+
+  <div fxFlexFill>
     <span fxFlex="40%">Number of Repayments:</span>
     <span fxFlex="60%">{{ loanProduct.numberOfRepayments + ' (Min: ' + (loanProduct.minNumberOfRepayments ? loanProduct.minNumberOfRepayments : loanProduct.numberOfRepayments) + ', Max: ' + (loanProduct.maxNumberOfRepayments ? loanProduct.maxNumberOfRepayments : loanProduct.numberOfRepayments) + ')' }}</span>
   </div>
@@ -336,6 +347,11 @@
   </div>
 
   <div fxFlexFill>
+    <span fxFlex="40%">Delinquency Bucket:</span>
+    <span fxFlex="60%">{{ loanProduct.delinquencyBucketId ? 'Yes' : 'No' }}</span>
+  </div>
+
+  <div fxFlexFill>
     <span fxFlex="40%">Account moves out of NPA only after all arrears have been cleared:</span>
     <span fxFlex="60%">{{ loanProduct.accountMovesOutOfNPAOnlyOnArrearsCompletion ? 'Yes' : 'No' }}</span>
   </div>
@@ -387,10 +403,6 @@
       <div fxFlexFill *ngIf="loanProduct.recalculationCompoundingFrequencyType !== 1" fxLayout="row wrap" fxLayout.lt-md="column">
         <span fxFlex="40%">Frequency Interval for compounding:</span>
         <span fxFlex="60%">{{ loanProduct.recalculationCompoundingFrequencyInterval }}</span>
-        <div fxFlexFill *ngIf="loanProduct.recalculationCompoundingFrequencyDate">
-          <span fxFlex="40%">Compounding Frequency Date:</span>
-          <span fxFlex="60%">{{ loanProduct.recalculationCompoundingFrequencyDate }}</span>
-        </div>
       </div>
     </div>
     <div fxFlexFill fxLayout="row wrap" fxLayout.lt-md="column">
@@ -454,6 +466,11 @@
       <span fxFlex="40%">Maximum allowed outstanding balance:</span>
       <span fxFlex="60%">{{ loanProduct.outstandingLoanBalance }}</span>
     </div>
+  </div>
+
+  <div fxFlexFill>
+    <span fxFlex="40%">Disallow Expected Disbursements:</span>
+    <span fxFlex="60%">{{ loanProduct.disallowExpectedDisbursements ? 'Yes' : 'No' }}</span>
   </div>
 
   <h3 class="mat-h3" fxFlexFill>Configurable Terms and Settings</h3>
@@ -577,11 +594,16 @@
 
   <div fxFlexFill *ngIf="loanProduct.accountingRule >= 2 && loanProduct.accountingRule <= 4" fxLayout="row wrap" fxLayout.lt-md="column">
 
-    <h4 fxFlexFill class="mat-h4">Assets</h4>
+    <h4 fxFlexFill class="mat-h4">Assets / Liabilities</h4>
 
     <div fxFlexFill fxLayout="row wrap" fxLayout.lt-md="column">
       <span fxFlex="40%">Fund source:</span>
-      <span fxFlex="60%">{{ loanProduct.fundSourceAccountId | find:loanProductsTemplate.accountingMappingOptions.assetAccountOptions:'id':'name' }}</span>
+      <span fxFlex="60%">{{ loanProduct.fundSourceAccountId | find:loanProductsTemplate.accountingMappingOptions.assetAndLiabilityAccountOptions:'id':'name' }}</span>
+    </div>
+
+    <h4 fxFlexFill class="mat-h4">Assets</h4>
+
+    <div fxFlexFill fxLayout="row wrap" fxLayout.lt-md="column">
       <span fxFlex="40%">Loan portfolio:</span>
       <span fxFlex="60%">{{ loanProduct.loanPortfolioAccountId | find:loanProductsTemplate.accountingMappingOptions.assetAccountOptions:'id':'name' }}</span>
       <div fxFlexFill *ngIf="loanProduct.accountingRule === 3 || loanProduct.accountingRule === 4" fxLayout="row wrap" fxLayout.lt-md="column">
@@ -611,9 +633,11 @@
 
     <h4 fxFlexFill class="mat-h4">Expenses</h4>
 
-    <div fxFlexFill>
+    <div fxFlexFill fxLayout="row wrap" fxLayout.lt-md="column">
       <span fxFlex="40%">Losses written off:</span>
       <span fxFlex="60%">{{ loanProduct.writeOffAccountId | find:loanProductsTemplate.accountingMappingOptions.expenseAccountOptions:'id':'name' }}</span>
+      <span fxFlex="40%">Goodwill credit:</span>
+      <span fxFlex="60%">{{ loanProduct.goodwillCreditAccountId | find:loanProductsTemplate.accountingMappingOptions.expenseAccountOptions:'id':'name' }}</span>
     </div>
 
     <h4 fxFlexFill class="mat-h4">Liabilities</h4>

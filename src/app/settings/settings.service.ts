@@ -1,5 +1,7 @@
 /** Angular Imports */
 import { Injectable } from '@angular/core';
+import { AlertService } from 'app/core/alert/alert.service';
+import { Dates } from 'app/core/utils/dates';
 
 /** Environment Imports */
 import { environment } from '../../environments/environment';
@@ -12,7 +14,13 @@ import { environment } from '../../environments/environment';
 })
 export class SettingsService {
 
-  constructor() { }
+  public static businessDateFormat = 'yyyy-MM-dd';
+  public static businessDateConfigName = 'enable_business_date';
+  public static businessDateType = 'BUSINESS_DATE';
+  public static cobDateType = 'COB_DATE';
+
+  constructor(private alertService: AlertService,
+    private dateUtils: Dates) { }
 
   /**
    * Sets date format setting throughout the app.
@@ -30,12 +38,19 @@ export class SettingsService {
     localStorage.setItem('mifosXLanguage', JSON.stringify(language));
   }
 
+  setDefaultLanguage() {
+    this.setLanguage({
+      name: environment.defaultLanguage,
+      code: environment.defaultLanguage.substring(0, 2)
+    });
+  }
+
   /**
    * Sets server URL setting throughout the app.
    * @param {string} url URL
    */
   setServer(url: string) {
-    localStorage.setItem('mifosXServerURL', JSON.stringify(url));
+    localStorage.setItem('mifosXServerURL', url);
   }
 
   /**
@@ -44,6 +59,22 @@ export class SettingsService {
    */
   setServers(list: string[]) {
     localStorage.setItem('mifosXServers', JSON.stringify(list));
+  }
+
+  /**
+   * Sets server Date setting for max datepicker, default today
+   * @param {string} date
+   */
+  setBusinessDate(date: string) {
+    localStorage.setItem('mifosXServerDate', date);
+  }
+
+  /**
+   * Sets server Date config is enabled
+   * @param {string} enabled
+   */
+   setBusinessDateConfig(enabled: string) {
+    localStorage.setItem('mifosXServerBusinessDateEnabled', enabled);
   }
 
   /**
@@ -57,6 +88,9 @@ export class SettingsService {
    * Returns language setting
    */
   get language() {
+    if (!localStorage.getItem('mifosXLanguage')) {
+      this.setDefaultLanguage();
+    }
     return JSON.parse(localStorage.getItem('mifosXLanguage'));
   }
 
@@ -71,7 +105,56 @@ export class SettingsService {
    * Returns server setting
    */
   get server() {
+    if (localStorage.getItem('mifosXServerURL')) {
+      return localStorage.getItem('mifosXServerURL');
+    }
     return environment.baseApiUrl;
   }
 
+  /**
+   * Returns server url with api path and version
+   */
+  get serverUrl() {
+    return this.server + environment.apiProvider + environment.apiVersion;
+  }
+
+  /**
+   * Returns current Business date server
+   */
+   get businessDate(): Date {
+    return this.dateUtils.convertToDate(localStorage.getItem('mifosXServerDate'), SettingsService.businessDateFormat);
+  }
+
+  /**
+   * Returns current Business date Config if it's enabled
+   */
+   get businessDateConfig(): any {
+    return localStorage.getItem('mifosXServerBusinessDateEnabled');
+  }
+
+  /**
+   * Validate If the enable_business_date configuration is enabled or disabled.
+   */
+   validateBusinessDateStatus(configurations: any) {
+    configurations.some((config: any) => {
+      if (config.name === SettingsService.businessDateConfigName) {
+        return config.enabled;
+      }
+    });
+  }
+
+  /**
+   * Get the Business Date or COB Date.
+   */
+  getBusinessDates(businessDateData: any, dateType: string): void {
+    businessDateData.some((data: any) => {
+      if (data.type === dateType) {
+        const dateVal = new Date(data.date);
+        this.setBusinessDate(this.dateUtils.formatDate(dateVal, SettingsService.businessDateFormat));
+        this.alertService.alert({ type: dateType + ' Set',
+          message: this.dateUtils.formatDate(dateVal, this.dateFormat())});
+        return;
+      }
+    });
+  }
 }

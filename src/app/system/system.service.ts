@@ -12,6 +12,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class SystemService {
+  emptyPayload: any = {};
 
   /**
    * @param {HttpClient} http Http Client to send requests.
@@ -229,6 +230,15 @@ export class SystemService {
     return this.http.get(`/surveys/${surveyId}?template=true`);
   }
 
+  /**
+   * @param {string} surveyId Survey ID.
+   * @param {any} survey Survey Data.
+   * @returns {Observable<any>}
+   */
+  editSurvey(surveyId: string, survey: any): Observable<any> {
+    return this.http.put(`/surveys/${surveyId}`, survey);
+  }
+
 
   /**
    * @returns {Observable<any>} Fetches Jobs.
@@ -257,8 +267,25 @@ export class SystemService {
    * @param {any} Job Job to be updated.
    * @returns {Observable<any>}
    */
-  updateScheduler(jobId: string, job: any): Observable<any> {
+  runCommandOnScheduler(command: string): Observable<any> {
+    return this.http.post(`/scheduler?command=` + command, this.emptyPayload);
+  }
+
+  /**
+   * @param {string} jobId Job ID of Job to be updated.
+   * @param {any} Job Job to be updated.
+   * @returns {Observable<any>}
+   */
+   updateScheduler(jobId: string, job: any): Observable<any> {
     return this.http.put(`/jobs/${jobId}`, job);
+  }
+
+  /**
+   * @param {string} jobId Job Id on which jobs to run
+   * @returns {Observable<any>}
+   */
+   runSelectedJob(jobId: string): Promise<any> {
+    return this.http.post(`/jobs/${jobId}?command=executeJob`, this.emptyPayload).toPromise();
   }
 
   /*
@@ -311,6 +338,28 @@ export class SystemService {
   }
 
   /**
+   * @returns {Observable<any>} Business Date data.
+   */
+  getBusinessDates(): Observable<any> {
+    return this.http.get('/businessdate');
+  }
+
+  /**
+   * @returns {Observable<any>} Business Date data using a type BUSINESS_DATE / COB_DATE.
+   */
+   getBusinessDate(dateType: string): Observable<any> {
+    return this.http.get(`/businessdate/${dateType}`);
+  }
+
+  /**
+   * @param {any} dateData Business Date data to be updated.
+   * @returns {Observable<any>}
+   */
+   updateBusinessDate(dateData: any): Observable<any> {
+    return this.http.post(`/businessdate`, dateData);
+  }
+
+  /**
    * @returns {Observable<any>} Configurations data.
    */
   getConfigurations(): Observable<any> {
@@ -323,6 +372,14 @@ export class SystemService {
    */
   getConfiguration(configurationId: string): Observable<any> {
     return this.http.get(`/configurations/${configurationId}`);
+  }
+
+  /**
+   * @param {string} configurationId Configuration ID of configuration.
+   * @returns {Observable<any>} Configuration.
+   */
+   getConfigurationByName(configurationName: string): Observable<any> {
+    return this.http.get(`/configurations/name/${configurationName}`);
   }
 
   /**

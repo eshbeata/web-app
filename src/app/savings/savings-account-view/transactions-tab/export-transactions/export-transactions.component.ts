@@ -2,11 +2,12 @@
 import { Component, OnInit } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { FormBuilder, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
 /** Custom Services */
 import { ReportsService } from 'app/reports/reports.service';
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Export Client Savings Transactions Component
@@ -36,14 +37,16 @@ export class ExportTransactionsComponent implements OnInit {
    * @param {DomSanitizer} sanitizer DOM Sanitizer
    * @param {ReportsService} reportsService Reports Service
    * @param {FormBuilder} formBuilder Form Builder
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {ActivatedRoute} route Activated Route
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private sanitizer: DomSanitizer,
               private reportsService: ReportsService,
               private formBuilder: FormBuilder,
-              private datePipe: DatePipe,
-              private route: ActivatedRoute) {
+              private dateUtils: Dates,
+              private route: ActivatedRoute,
+              private settingsService: SettingsService) {
     this.route.parent.parent.data.subscribe((data: { savingsAccountData: any }) => {
       this.savingsAccountId = data.savingsAccountData.accountNo;
     });
@@ -51,6 +54,7 @@ export class ExportTransactionsComponent implements OnInit {
 
 
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createTransactionsReportForm();
   }
 
@@ -70,11 +74,11 @@ export class ExportTransactionsComponent implements OnInit {
   generate() {
     const data = {
       'output-type':	'PDF',
-      R_startDate:	this.datePipe.transform(this.transactionsReportForm.value.fromDate, 'yyyy-MM-dd'),
-      R_endDate:	this.datePipe.transform(this.transactionsReportForm.value.toDate, 'yyyy-MM-dd'),
+      R_startDate:	this.dateUtils.formatDate(this.transactionsReportForm.value.fromDate, this.settingsService.dateFormat),
+      R_endDate:	this.dateUtils.formatDate(this.transactionsReportForm.value.toDate, this.settingsService.dateFormat),
       R_savingsAccountId:	this.savingsAccountId
     };
-    this.reportsService.getPentahoRunReportData('Client Saving Transactions', data, 'default', 'en', 'dd MMMM yyyy')
+    this.reportsService.getPentahoRunReportData('Client Saving Transactions', data, 'default', this.settingsService.language.code, this.settingsService.dateFormat)
       .subscribe( (res: any) => {
         const contentType = res.headers.get('Content-Type');
         const file = new Blob([res.body], {type: contentType});

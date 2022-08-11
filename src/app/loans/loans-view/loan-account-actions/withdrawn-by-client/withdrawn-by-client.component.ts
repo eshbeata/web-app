@@ -5,8 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 /** Custom Services */
 import { LoansService } from 'app/loans/loans.service';
-import { DatePipe } from '@angular/common';
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Withdrawn By Applicant Loan Form
@@ -33,14 +33,13 @@ export class WithdrawnByClientComponent implements OnInit {
    * @param {LoansService} loanService Loan Service.
    * @param {ActivatedRoute} route Activated Route.
    * @param {Router} router Router for navigation.
-   * @param {DatePipe} datePipe Date Pipe.
    * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
     private loanService: LoansService,
     private route: ActivatedRoute,
     private router: Router,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private settingsService: SettingsService) {
     this.loanId = this.route.parent.snapshot.params['loanId'];
   }
@@ -50,6 +49,7 @@ export class WithdrawnByClientComponent implements OnInit {
    * and initialize with the required values
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createWithdrawnByClientLoanForm();
   }
 
@@ -65,16 +65,19 @@ export class WithdrawnByClientComponent implements OnInit {
 
   /** Submits the withdraw by appplicant form */
   submit() {
-    const prevTransactionDate: Date = this.withdrawnByClientLoanForm.value.withdrawnOnDate;
-    // TODO: Update once language and date settings are setup
+    const withdrawnByClientLoanFormData = this.withdrawnByClientLoanForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
-    this.withdrawnByClientLoanForm.patchValue({
-      withdrawnOnDate: this.datePipe.transform(prevTransactionDate, dateFormat)
-    });
-    const WithdrawnByClientLoanData = this.withdrawnByClientLoanForm.value;
-    WithdrawnByClientLoanData.locale = this.settingsService.language.code;
-    WithdrawnByClientLoanData.dateFormat = dateFormat;
-    this.loanService.loanActionButtons(this.loanId, 'withdrawnByApplicant', WithdrawnByClientLoanData)
+    const prevTransactionDate: Date = this.withdrawnByClientLoanForm.value.withdrawnOnDate;
+    if (withdrawnByClientLoanFormData.withdrawnOnDate instanceof Date) {
+      withdrawnByClientLoanFormData.withdrawnOnDate = this.dateUtils.formatDate(prevTransactionDate, dateFormat);
+    }
+    const data = {
+      ...withdrawnByClientLoanFormData,
+      dateFormat,
+      locale
+    };
+    this.loanService.loanActionButtons(this.loanId, 'withdrawnByApplicant', data)
       .subscribe((response: any) => {
         this.router.navigate(['../../../general'], { relativeTo: this.route });
       });

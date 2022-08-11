@@ -1,10 +1,10 @@
 /** Angular Imports */
 import { Component, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Custom Services */
 import { FixedDepositsService } from '../fixed-deposits.service';
+import { SettingsService } from 'app/settings/settings.service';
 
 /** Custom Components */
 import { FixedDepositAccountDetailsStepComponent } from '../fixed-deposit-account-stepper/fixed-deposit-account-details-step/fixed-deposit-account-details-step.component';
@@ -12,6 +12,7 @@ import { FixedDepositAccountCurrencyStepComponent } from '../fixed-deposit-accou
 import { FixedDepositAccountTermsStepComponent } from '../fixed-deposit-account-stepper/fixed-deposit-account-terms-step/fixed-deposit-account-terms-step.component';
 import { FixedDepositAccountSettingsStepComponent } from '../fixed-deposit-account-stepper/fixed-deposit-account-settings-step/fixed-deposit-account-settings-step.component';
 import { FixedDepositAccountChargesStepComponent } from '../fixed-deposit-account-stepper/fixed-deposit-account-charges-step/fixed-deposit-account-charges-step.component';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Create Fixed Deposit Account Component
@@ -43,13 +44,15 @@ export class CreateFixedDepositAccountComponent {
    * Fetches FD account template from `resolve`
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {FixedDepositsService} fixedDepositsService Fixed Deposits Service
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private route: ActivatedRoute,
               private router: Router,
-              private datePipe: DatePipe,
-              private fixedDepositsService: FixedDepositsService) {
+              private dateUtils: Dates,
+              private fixedDepositsService: FixedDepositsService,
+              private settingsService: SettingsService) {
     this.route.data.subscribe((data: { fixedDepositsAccountTemplate: any }) => {
       this.fixedDepositsAccountTemplate = data.fixedDepositsAccountTemplate;
     });
@@ -118,8 +121,8 @@ export class CreateFixedDepositAccountComponent {
    * Submits the fixed deposit form and creates a new fixed deposit account
    */
   submit() {
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const monthDayFormat = 'dd MMMM';
     const fixedDepositAccount = {
       ...this.fixedDepositAccount,
@@ -127,11 +130,11 @@ export class CreateFixedDepositAccountComponent {
       charges: this.fixedDepositAccount.charges.map((charge: any) => ({
         chargeId: charge.id,
         amount: charge.amount,
-        dueDate: charge.dueDate && this.datePipe.transform(charge.dueDate, dateFormat),
-        feeOnMonthDay: charge.feeOnMonthDay && this.datePipe.transform([2000].concat(charge.feeOnMonthDay), monthDayFormat),
+        dueDate: charge.dueDate && this.dateUtils.formatDate(charge.dueDate, dateFormat),
+        feeOnMonthDay: charge.feeOnMonthDay && this.dateUtils.formatDate([2000].concat(charge.feeOnMonthDay), monthDayFormat),
         feeInterval: charge.feeInterval
       })),
-      submittedOnDate: this.datePipe.transform(this.fixedDepositAccount.submittedOnDate, dateFormat),
+      submittedOnDate: this.dateUtils.formatDate(this.fixedDepositAccount.submittedOnDate, dateFormat),
       charts: [{chartSlabs: this.fixedDepositsAccountProductTemplate.accountChart.chartSlabs}],
       dateFormat,
       monthDayFormat,

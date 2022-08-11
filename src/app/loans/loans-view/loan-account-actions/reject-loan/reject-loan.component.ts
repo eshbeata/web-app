@@ -2,11 +2,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Custom services. */
 import { LoansService } from 'app/loans/loans.service';
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Reject Loan component.
@@ -32,19 +32,19 @@ export class RejectLoanComponent implements OnInit {
    * @param formBuilder Form Builder.
    * @param router Router.
    * @param route Activated Route.
-   * @param datePipe Date Pipe.
    * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
               private router: Router,
               private route: ActivatedRoute,
               private loanService: LoansService,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private settingsService: SettingsService ) {
     this.loanId = this.route.parent.snapshot.params['loanId'];
   }
 
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.setRejectLoanForm();
   }
 
@@ -62,15 +62,19 @@ export class RejectLoanComponent implements OnInit {
    * Submit Reject Loan form.
    */
   submit() {
-    const rejectedOnDate = this.rejectLoanForm.value.rejectedOnDate;
+    const rejectLoanFormData = this.rejectLoanForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
-    this.rejectLoanForm.patchValue({
-      rejectedOnDate: this.datePipe.transform(rejectedOnDate, dateFormat)
-    });
-    const rejectForm = this.rejectLoanForm.value;
-    rejectForm.locale = this.settingsService.language.code;
-    rejectForm.dateFormat = dateFormat;
-    this.loanService.loanActionButtons(this.loanId, 'reject', rejectForm).subscribe((response: any) => {
+    const prevRejectedOnDate = this.rejectLoanForm.value.rejectedOnDate;
+    if (rejectLoanFormData.rejectedOnDate instanceof Date) {
+      rejectLoanFormData.rejectedOnDate = this.dateUtils.formatDate(prevRejectedOnDate, dateFormat);
+    }
+    const data = {
+      ...rejectLoanFormData,
+      dateFormat,
+      locale
+    };
+    this.loanService.loanActionButtons(this.loanId, 'reject', data).subscribe((response: any) => {
       this.router.navigate(['../../general'], { relativeTo: this.route });
     });
   }

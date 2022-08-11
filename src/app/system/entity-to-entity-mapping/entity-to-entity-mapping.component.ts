@@ -5,11 +5,11 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Custom Services */
 import { SystemService } from 'app/system/system.service';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { SettingsService } from 'app/settings/settings.service';
 
 /** Custom Components */
 import { DeleteDialogComponent } from '../../shared/delete-dialog/delete-dialog.component';
@@ -17,6 +17,7 @@ import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-
 import { SelectBase } from 'app/shared/form-dialog/formfield/model/select-base';
 import { DatepickerBase } from 'app/shared/form-dialog/formfield/model/datepicker-base';
 import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Entity to Entity Mapping Component
@@ -81,8 +82,9 @@ export class EntityToEntityMappingComponent implements OnInit {
   constructor(private route: ActivatedRoute,
     private formBuilder: FormBuilder,
     private systemService: SystemService,
-    private datePipe: DatePipe,
-    private dialog: MatDialog) {
+    private dateUtils: Dates,
+    private dialog: MatDialog,
+    private settingsService: SettingsService) {
     this.route.data.subscribe((data: { entityMappings: any }) => {
       this.entityMappings = data.entityMappings;
     });
@@ -313,18 +315,17 @@ export class EntityToEntityMappingComponent implements OnInit {
     if (addMappingForm.value.toId === '') {
       addMappingForm.value.toId = undefined;
     }
-    const dateFormat = 'dd MMMM yyyy';
+    const dateFormat = this.settingsService.dateFormat;
 
     const startDate: Date = addMappingForm.value.startDate;
     const endDate: Date = addMappingForm.value.endDate;
 
-    addMappingForm.patchValue({
-      startDate: this.datePipe.transform(startDate, dateFormat),
-      endDate: this.datePipe.transform(endDate, dateFormat)
-    });
     const newMappingData = addMappingForm.value;
+    newMappingData.startDate = this.dateUtils.formatDate(startDate, dateFormat);
+    newMappingData.endDate = this.dateUtils.formatDate(endDate, dateFormat);
+
     newMappingData.dateFormat = dateFormat;
-    newMappingData.locale = 'en';
+    newMappingData.locale = this.settingsService.language.code;
     this.systemService.createMapping(this.relId, newMappingData).subscribe((response: any) => {
       this.showFilteredData();
     });
@@ -335,18 +336,17 @@ export class EntityToEntityMappingComponent implements OnInit {
    * @param editMappingForm Edit Mapping Form Id
    */
   submitEdit(editMappingForm: any) {
-    const dateFormat = 'dd MMMM yyyy';
+    const dateFormat = this.settingsService.dateFormat;
 
     const startDate: Date = editMappingForm.value.startDate;
     const endDate: Date = editMappingForm.value.endDate;
 
-    editMappingForm.patchValue({
-      startDate: this.datePipe.transform(startDate, dateFormat),
-      endDate: this.datePipe.transform(endDate, dateFormat)
-    });
     const newMappingData = editMappingForm.value;
+    newMappingData.startDate = this.dateUtils.formatDate(startDate, dateFormat);
+    newMappingData.endDate = this.dateUtils.formatDate(endDate, dateFormat);
+
     newMappingData.dateFormat = dateFormat;
-    newMappingData.locale = 'en';
+    newMappingData.locale = this.settingsService.language.code;
     this.systemService.editMapping(this.mapIdToEdit, newMappingData).subscribe((response: any) => {
       this.showFilteredData();
     });

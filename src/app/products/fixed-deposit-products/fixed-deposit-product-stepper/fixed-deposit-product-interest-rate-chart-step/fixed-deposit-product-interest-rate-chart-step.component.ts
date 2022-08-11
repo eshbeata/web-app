@@ -1,16 +1,22 @@
+/** Angular Imports */
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormArray } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 
+/** Custom Components */
 import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
 import { DepositProductIncentiveFormDialogComponent } from 'app/products/deposit-product-incentive-form-dialog/deposit-product-incentive-form-dialog.component';
 import { DeleteDialogComponent } from 'app/shared/delete-dialog/delete-dialog.component';
 
+/** Dialog Components */
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
 import { SelectBase } from 'app/shared/form-dialog/formfield/model/select-base';
 import { InputBase } from 'app/shared/form-dialog/formfield/model/input-base';
+
+/** Custom Services */
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 @Component({
   selector: 'mifosx-fixed-deposit-product-interest-rate-chart-step',
@@ -50,9 +56,17 @@ export class FixedDepositProductInterestRateChartStepComponent implements OnInit
   chartDetailData: any = [];
   chartsDetail: any[] = [];
 
+  /**
+   * @param {FormBuilder} formBuilder Form Builder.
+   * @param {MatDialog} dialog Dialog reference.
+   * @param {Dates} dateUtils Date Utils.
+   * @param {SettingsService} settingsService Settings Service.
+   */
+
   constructor(private formBuilder: FormBuilder,
               public dialog: MatDialog,
-              private datePipe: DatePipe) {
+              private dateUtils: Dates,
+              private settingsService: SettingsService) {
     this.createFixedDepositProductInterestRateChartForm();
   }
 
@@ -66,7 +80,7 @@ export class FixedDepositProductInterestRateChartStepComponent implements OnInit
     this.clientClassificationData = this.fixedDepositProductsTemplate.chartTemplate.clientClassificationOptions;
     this.incentiveTypeData = this.fixedDepositProductsTemplate.chartTemplate.incentiveTypeOptions;
 
-    if (!(this.fixedDepositProductsTemplate === undefined) && this.fixedDepositProductsTemplate.id) {
+    if (!(this.fixedDepositProductsTemplate === undefined)) {
       this.assignFormData();
     }
   }
@@ -74,10 +88,12 @@ export class FixedDepositProductInterestRateChartStepComponent implements OnInit
   assignFormData() {
     this.addChart();
     const isChartArray = Array.isArray(this.fixedDepositProductsTemplate.activeChart);
-    if (!isChartArray) {
-      this.chartDetailData.push(this.fixedDepositProductsTemplate.activeChart);
-    } else {
-      this.chartDetailData = this.fixedDepositProductsTemplate.activeChart;
+    if (this.fixedDepositProductsTemplate.activeChart) {
+      if (!isChartArray) {
+        this.chartDetailData.push(this.fixedDepositProductsTemplate.activeChart);
+      } else {
+        this.chartDetailData = this.fixedDepositProductsTemplate.activeChart;
+      }
     }
 
     // Build the array of Objects from the retrived value
@@ -85,6 +101,10 @@ export class FixedDepositProductInterestRateChartStepComponent implements OnInit
 
     // Iterates for every chart in charts
     this.charts.controls.forEach((chartDetailControl: FormGroup, i: number) => {
+
+      if (!this.chartsDetail[i]) {
+        return;
+      }
 
       // Iterate for every chartSlab in chart
       this.chartsDetail[i].chartSlabs.forEach((chartSlabDetail: any, j: number) => {
@@ -131,6 +151,7 @@ export class FixedDepositProductInterestRateChartStepComponent implements OnInit
         fromDate: chartData.fromDate ? new Date(chartData.fromDate) : '',
         isPrimaryGroupingByAmount: chartData.isPrimaryGroupingByAmount,
         name: chartData.name,
+        description: chartData.description,
         chartSlabs: this.getChartSlabsData(chartData)
       };
       this.chartsDetail.push(chart);
@@ -208,7 +229,7 @@ export class FixedDepositProductInterestRateChartStepComponent implements OnInit
       'fromDate': ['', Validators.required],
       'endDate': [''],
       'isPrimaryGroupingByAmount': [false],
-      'chartSlabs': this.formBuilder.array([])
+      'chartSlabs': this.formBuilder.array([], Validators.required)
     });
   }
 
@@ -284,7 +305,7 @@ export class FixedDepositProductInterestRateChartStepComponent implements OnInit
 
   getData(formType: string, values?: any) {
     switch (formType) {
-      case 'Slab': return  { title: 'Slab', formfields: this.getSlabFormfields(values) };
+      case 'Slab': return { title: 'Slab', formfields: this.getSlabFormfields(values) };
       case 'Incentive': return { values, chartTemplate: this.fixedDepositProductsTemplate.chartTemplate };
     }
   }
@@ -349,14 +370,14 @@ export class FixedDepositProductInterestRateChartStepComponent implements OnInit
 
   get fixedDepositProductInterestRateChart() {
     // TODO: Update once language and date settings are setup
-    const dateFormat = 'yyyy-MM-dd';
-    const locale = 'en';
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const fixedDepositProductInterestRateChart = this.fixedDepositProductInterestRateChartForm.value;
     for (const chart of fixedDepositProductInterestRateChart.charts) {
       chart.dateFormat = dateFormat;
       chart.locale = locale;
-      chart.fromDate = this.datePipe.transform(chart.fromDate, dateFormat) || '';
-      chart.endDate = this.datePipe.transform(chart.endDate, dateFormat) || '';
+      chart.fromDate = this.dateUtils.formatDate(chart.fromDate, dateFormat) || '';
+      chart.endDate = this.dateUtils.formatDate(chart.endDate, dateFormat) || '';
       if (chart.endDate === '') {
         delete chart.endDate;
       }

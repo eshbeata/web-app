@@ -8,7 +8,7 @@
 
         <div fxLayout="column">
 
-          <mat-form-field>
+          <mat-form-field (click)="approvedDatePicker.open()">
             <mat-label>Approved On</mat-label>
             <input matInput [min]="minDate" [matDatepicker]="approvedDatePicker" required
               formControlName="approvedOnDate">
@@ -19,7 +19,7 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field (click)="disbursementDatePicker.open()">
             <mat-label>Expected disbursement on</mat-label>
             <input matInput [min]="minDate" [matDatepicker]="disbursementDatePicker"
               formControlName="expectedDisbursementDate">
@@ -34,7 +34,7 @@
 
           <mat-form-field>
             <mat-label>Transaction Amount</mat-label>
-            <input matInput type="number" required formControlName="approvedLoanAmount" required>
+            <input matInput type="number" required formControlName="approvedLoanAmount">
             <mat-error *ngIf="approveLoanForm.controls.approvedLoanAmount.hasError('required')">
               Transaction Amount is <strong>required</strong>
             </mat-error>

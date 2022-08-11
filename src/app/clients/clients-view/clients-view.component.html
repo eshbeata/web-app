@@ -38,8 +38,8 @@
             Client #:{{clientViewData.accountNo}} | External
             Id: {{clientViewData.externalId}} | Staff:{{clientViewData.staffName || 'Unassigned'}}<br />
             Activation Date :
-            {{(clientViewData.activationDate)?(clientViewData.activationDate|date) :'Not Activated'}}<br />
-            Member Of : 
+            {{(clientViewData.activation)?(clientViewData.activationDate | dateFormat) :'Not Activated'}}<br />
+            Member Of :
             <span *ngFor="let group of clientViewData.groups">
               <a>{{group.name}}</a>&nbsp;
             </span>
@@ -58,7 +58,7 @@
         <button mat-raised-button [routerLink]="['edit']">
           <i class="fa fa-edit"></i>Edit</button>
       </span>
-      
+
       <button mat-raised-button [matMenuTriggerFor]="Applications">
         <i class="fa fa-file"></i>Applications</button>
       <mat-menu #Applications="matMenu">
@@ -84,7 +84,7 @@
         <span *ngIf="clientViewData.status.value === 'Transfer in progress'"><button mat-menu-item (click)="doAction('Accept Transfer')">Accept Transfer</button></span>
         <span *ngIf="clientViewData.status.value === 'Transfer in progress'"><button mat-menu-item (click)="doAction('Reject Transfer')">Reject transfer</button></span>
       </mat-menu>
-      
+
       <span *ngIf="!clientViewData.staffId">
         <button mat-raised-button (click)="doAction('Assign Staff')">
           <i class="fa fa-user"></i>Assign Staff</button>
@@ -97,6 +97,7 @@
       <button mat-raised-button [matMenuTriggerFor]="More">More</button>
       <mat-menu #More="matMenu">
         <button mat-menu-item (click)="doAction('Add Charge')" *mifosxHasPermission="'CREATE_CLIENTCHARGE'"> Add Charge </button>
+        <button mat-menu-item (click)="doAction('Create Collateral')">Create Collateral</button>
         <button mat-menu-item (click)="doAction('Survey')">Survey</button>
         <button mat-menu-item (click)="doAction('Update Default Savings')" *mifosxHasPermission="'UPDATESAVINGSACCOUNT_CLIENT'"> Update Default Savings </button>
         <button mat-menu-item (click)="doAction('Upload Signature')" *mifosxHasPermission="'CREATE_CLIENTIMAGE'"> Upload Signature </button>
@@ -120,7 +121,7 @@
         General
       </a>
       <a mat-tab-link [routerLink]="['./address']" routerLinkActive #address="routerLinkActive"
-        [active]="address.isActive" *ngIf="clientTemplateData.isAddressEnabled">
+        [active]="address.isActive">
         Address
       </a>
       <a mat-tab-link [routerLink]="['./family-members']" routerLinkActive #familyMembers="routerLinkActive"

@@ -2,11 +2,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 
 /** Custom Services */
 import { ProductsService } from '../../products.service';
+import { SettingsService } from 'app/settings/settings.service';
 
 /** Dialog Components */
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
@@ -14,6 +14,7 @@ import { SelectBase } from 'app/shared/form-dialog/formfield/model/select-base';
 import { DatepickerBase } from 'app/shared/form-dialog/formfield/model/datepicker-base';
 import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
 import { DeleteDialogComponent } from 'app/shared/delete-dialog/delete-dialog.component';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Edit Tax Group component.
@@ -47,14 +48,17 @@ export class EditTaxGroupComponent implements OnInit {
    * @param {ProductsService} productsService Products Service.
    * @param {ActivatedRoute} route Activated Route.
    * @param {Router} router Router for navigation.
-   * @param {DatePipe} datePipe Date Pipe to format date.
+   * @param {Dates} dateUtils Date Utils to format date.
+   * @param {MatDialog} dialog Dialog reference.
+   * @param {SettingsService} settingsService Settings Service.
    */
   constructor(private formBuilder: FormBuilder,
-    private productsService: ProductsService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private datePipe: DatePipe,
-    public dialog: MatDialog) {
+              private productsService: ProductsService,
+              private route: ActivatedRoute,
+              private router: Router,
+              private dateUtils: Dates,
+              public dialog: MatDialog,
+              private settingsService: SettingsService) {
     this.route.data.subscribe((data: { taxGroup: any }) => {
       this.taxGroupData = data.taxGroup;
       this.taxComponentOptions = this.taxGroupData.taxComponents;
@@ -193,8 +197,8 @@ export class EditTaxGroupComponent implements OnInit {
    * if successful redirects to Tax Groups.
    */
   submit() {
-    const dateFormat = 'yyyy-MM-dd';
-    const locale = 'en';
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const taxGroup = {
       ...this.taxGroupForm.value,
       taxComponents: this.taxComponentsDataSource,
@@ -202,10 +206,10 @@ export class EditTaxGroupComponent implements OnInit {
       locale
     };
     for (const taxComponent of taxGroup.taxComponents) {
-      taxComponent.startDate = this.datePipe.transform(taxComponent.startDate, dateFormat) || '';
+      taxComponent.startDate = this.dateUtils.formatDate(taxComponent.startDate, dateFormat) || '';
       if (taxComponent.endDate) {
         delete taxComponent.startDate;
-        taxComponent.endDate = this.datePipe.transform(taxComponent.endDate, dateFormat) || '';
+        taxComponent.endDate = this.dateUtils.formatDate(taxComponent.endDate, dateFormat) || '';
       }
       delete taxComponent.isNew;
     }

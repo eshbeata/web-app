@@ -6,7 +6,6 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Services Import */
 import { CollectionsService } from '../collections.service';
@@ -18,6 +17,10 @@ import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.componen
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
 import { InputBase } from 'app/shared/form-dialog/formfield/model/input-base';
 import { SelectBase } from 'app/shared/form-dialog/formfield/model/select-base';
+
+/** Custom Services */
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Individual Collection Sheet
@@ -79,22 +82,25 @@ export class IndividualCollectionSheetComponent implements OnInit {
    * @param {FormBuilder} formBuilder Form Builder.
    * @param {OrganizationService} collectionsService Organization Service.
    * @param {Route} route Route.
-   * @param {DatePipe} datePipe Date Pipe to format date.
+   * @param {Dates} dateUtils Date Utils to format date.
    * @param {Dialog} dialog Dialog component.
    * @param {Router} router Router for navigation.
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
-    private collectionsService: CollectionsService,
-    private route: ActivatedRoute,
-    private datePipe: DatePipe,
-    public dialog: MatDialog,
-    private router: Router, ) {
+              private collectionsService: CollectionsService,
+              private route: ActivatedRoute,
+              private dateUtils: Dates,
+              public dialog: MatDialog,
+              private router: Router,
+              private settingsService: SettingsService) {
     this.route.data.subscribe((data: { officesData: any }) => {
       this.officesData = data.officesData;
     });
   }
 
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     if (localStorage.getItem('Success')) {
       localStorage.removeItem('Success');
       this.Success = true;
@@ -275,12 +281,11 @@ export class IndividualCollectionSheetComponent implements OnInit {
    * Searches collection sheet data
    */
   previewCollectionSheet() {
-    // TODO: Update once language and date settings are setup
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const collectionSheet = {
       ...this.collectionSheetForm.value,
-      'transactionDate': this.datePipe.transform(this.collectionSheetForm.value.transactionDate, dateFormat),
+      transactionDate: this.dateUtils.formatDate(this.collectionSheetForm.value.transactionDate, dateFormat),
       dateFormat,
       locale
     };
@@ -303,16 +308,15 @@ export class IndividualCollectionSheetComponent implements OnInit {
    * Submit the data with all the payments data
    */
   submit() {
-    // TODO: Update once language and date settings are setup
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     this.bulkDisbursementTransactionsData['bulkRepaymentTransactions'] = this.bulkRepaymentTransactions;
     this.bulkDisbursementTransactionsData['bulkSavingsDueTransactions'] = this.bulkSavingsDueTransactions;
     const finalSubmitData = {
       dateFormat,
       locale,
-      actualDisbursementDate: this.datePipe.transform(this.collectionSheetForm.value.transactionDate, dateFormat),
-      transactionDate: this.datePipe.transform(this.collectionSheetForm.value.transactionDate, dateFormat),
+      actualDisbursementDate: this.dateUtils.formatDate(this.collectionSheetForm.value.transactionDate, dateFormat),
+      transactionDate: this.dateUtils.formatDate(this.collectionSheetForm.value.transactionDate, dateFormat),
       bulkDisbursementTransactions: this.bulkDisbursementTransactionsData
     };
     this.collectionsService.executeSaveCollectionSheet(finalSubmitData).subscribe(() => {

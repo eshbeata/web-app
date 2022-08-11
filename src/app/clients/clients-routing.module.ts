@@ -48,6 +48,7 @@ import { ClientActionsResolver } from './common-resolvers/client-actions.resolve
 import { ClientChargeViewResolver } from './common-resolvers/client-charge-view.resolver';
 import { ClientTransactionPayResolver } from './common-resolvers/client-transaction-pay.resolver';
 import { ClientDataAndTemplateResolver } from './common-resolvers/client-and-template.resolver';
+import { ClientCollateralResolver } from './common-resolvers/client-collateral.resolver';
 
 const routes: Routes = [
   Route.withShell([{
@@ -84,7 +85,7 @@ const routes: Routes = [
             resolve: {
               clientAccountsData: ClientAccountsResolver,
               clientChargesData: ClientChargesResolver,
-              clientSummary: ClientSummaryResolver
+              clientCollateralData: ClientCollateralResolver
             }
           },
           {
@@ -177,6 +178,9 @@ const routes: Routes = [
       {
         path: ':clientId',
         data: { title: extract('Clients View'), routeParamBreadcrumb: 'clientId' },
+        resolve: {
+          clientViewData: ClientViewResolver
+        },
         children: [
           {
             path: 'edit',
@@ -233,6 +237,10 @@ const routes: Routes = [
             loadChildren: () => import('../loans/loans.module').then(m => m.LoansModule)
           },
           {
+            path: 'client-collateral',
+            loadChildren: () => import('../collaterals/collaterals.module').then(m => m.CollateralsModule)
+          },
+          {
             path: 'fixed-deposits-accounts',
             loadChildren: () => import('../deposits/fixed-deposits/fixed-deposits.module').then(m => m.FixedDepositsModule)
           },
@@ -283,7 +291,8 @@ const routes: Routes = [
     ClientActionsResolver,
     ClientChargeViewResolver,
     ClientTransactionPayResolver,
-    ClientDataAndTemplateResolver
+    ClientDataAndTemplateResolver,
+    ClientCollateralResolver
   ]
 })
 export class ClientsRoutingModule { }

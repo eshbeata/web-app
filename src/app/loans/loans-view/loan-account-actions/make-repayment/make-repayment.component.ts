@@ -5,8 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 /** Custom Services */
 import { LoansService } from 'app/loans/loans.service';
-import { DatePipe } from '@angular/common';
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Loan Make Repayment Component
@@ -37,14 +37,13 @@ export class MakeRepaymentComponent implements OnInit {
    * @param {LoansService} loanService Loan Service.
    * @param {ActivatedRoute} route Activated Route.
    * @param {Router} router Router for navigation.
-   * @param {DatePipe} datePipe Date Pipe.
    * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
     private loanService: LoansService,
     private route: ActivatedRoute,
     private router: Router,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private settingsService: SettingsService) {
       this.loanId = this.route.parent.snapshot.params['loanId'];
     }
@@ -54,8 +53,9 @@ export class MakeRepaymentComponent implements OnInit {
    * and initialize with the required values
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createRepaymentLoanForm();
-    // this.setRepaymentLoanDetails();
+    this.setRepaymentLoanDetails();
   }
 
   /**
@@ -73,8 +73,7 @@ export class MakeRepaymentComponent implements OnInit {
   setRepaymentLoanDetails() {
     this.paymentTypes = this.dataObject.paymentTypeOptions;
     this.repaymentLoanForm.patchValue({
-      transactionAmount: this.dataObject.amount,
-      transactionDate: new Date(this.dataObject.date)
+      transactionAmount: this.dataObject.amount
     });
   }
 
@@ -100,18 +99,22 @@ export class MakeRepaymentComponent implements OnInit {
 
   /** Submits the repayment form */
   submit() {
-    const prevTransactionDate: Date = this.repaymentLoanForm.value.transactionDate;
-    // TODO: Update once language and date settings are setup
+    const repaymentLoanFormData = this.repaymentLoanForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
-    this.repaymentLoanForm.patchValue({
-      transactionDate: this.datePipe.transform(prevTransactionDate, dateFormat)
-    });
-    const repaymentLoanData = this.repaymentLoanForm.value;
-    repaymentLoanData.locale = this.settingsService.language.code;
-    repaymentLoanData.dateFormat = dateFormat;
-    this.loanService.submitLoanActionButton(this.loanId, repaymentLoanData, 'repayment')
+    const prevTransactionDate: Date = this.repaymentLoanForm.value.transactionDate;
+    if (repaymentLoanFormData.transactionDate instanceof Date) {
+      repaymentLoanFormData.transactionDate = this.dateUtils.formatDate(prevTransactionDate, dateFormat);
+    }
+    const data = {
+      ...repaymentLoanFormData,
+      dateFormat,
+      locale
+    };
+    const command = this.dataObject.type.code.split('.')[1];
+    this.loanService.submitLoanActionButton(this.loanId, data, command)
       .subscribe((response: any) => {
-        this.router.navigate(['../../../general'], { relativeTo: this.route });
+        this.router.navigate(['../../transactions'], { relativeTo: this.route });
     });
   }
 

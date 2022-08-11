@@ -1,10 +1,10 @@
 /** Angular Imports */
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { SettingsService } from 'app/settings/settings.service';
 
 /** Custom Services */
 import { RecurringDepositsService } from '../../recurring-deposits.service';
-import { DatePipe } from '@angular/common';
 
 /**
  * Recurring Deposits Account Details Step
@@ -39,14 +39,16 @@ export class RecurringDepositsAccountDetailsStepComponent implements OnInit {
    * Sets recurring deposits account details form.
    * @param {FormBuilder} formBuilder Form Builder.
    * @param {RecurringDepositsService} recurringDepositsService Recurring Deposits Service.
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
     private recurringDepositsService: RecurringDepositsService,
-    private datePipe: DatePipe) {
+    private settingsService: SettingsService) {
     this.createRecurringDepositsAccountDetailsForm();
   }
 
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.buildDependencies();
     if (this.recurringDepositsAccountTemplate) {
       this.productData = this.recurringDepositsAccountTemplate.productOptions;

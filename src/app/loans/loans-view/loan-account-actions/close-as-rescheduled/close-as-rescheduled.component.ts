@@ -2,10 +2,10 @@ import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { LoansService } from 'app/loans/loans.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Custom Services */
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 @Component({
   selector: 'mifosx-close-as-rescheduled',
@@ -36,7 +36,7 @@ export class CloseAsRescheduledComponent implements OnInit {
     private loanService: LoansService,
     private route: ActivatedRoute,
     private router: Router,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private settingsService: SettingsService) {
       this.loanId = this.route.parent.snapshot.params['loanId'];
     }
@@ -45,6 +45,7 @@ export class CloseAsRescheduledComponent implements OnInit {
    * Creates the close form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createCloseForm();
   }
 
@@ -63,15 +64,19 @@ export class CloseAsRescheduledComponent implements OnInit {
    * if successful redirects to view created close.
    */
   submit() {
-    const transactionDate = this.closeLoanForm.value.transactionDate;
+    const closeLoanFormData = this.closeLoanForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
-    this.closeLoanForm.patchValue({
-      transactionDate: this.datePipe.transform(transactionDate, dateFormat)
-    });
-    const closeForm = this.closeLoanForm.value;
-    closeForm.locale = this.settingsService.language.code;
-    closeForm.dateFormat = dateFormat;
-    this.loanService.submitLoanActionButton(this.loanId, closeForm, 'close-rescheduled')
+    const transactionDate = this.closeLoanForm.value.transactionDate;
+    if (closeLoanFormData.transactionDate instanceof Date) {
+      closeLoanFormData.transactionDate = this.dateUtils.formatDate(transactionDate, dateFormat);
+    }
+    const data = {
+      ...closeLoanFormData,
+      dateFormat,
+      locale
+    };
+    this.loanService.submitLoanActionButton(this.loanId, data, 'close-rescheduled')
       .subscribe((response: any) => {
         this.router.navigate(['../../general'], { relativeTo: this.route });
     });

@@ -5,12 +5,13 @@ import { MatDialog } from '@angular/material/dialog';
 
 /** Dialog Components */
 import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
+import { SettingsService } from 'app/settings/settings.service';
 
 /** Custom Services */
-import { DatePipe } from '@angular/common';
 import { DatepickerBase } from 'app/shared/form-dialog/formfield/model/datepicker-base';
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
 import { InputBase } from 'app/shared/form-dialog/formfield/model/input-base';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Fixed Deposit Account Charges Step
@@ -44,10 +45,12 @@ export class FixedDepositAccountChargesStepComponent implements OnInit, OnChange
 
   /**
    * @param {MatDialog} dialog Mat Dialog
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(public dialog: MatDialog,
-              private datePipe: DatePipe) { }
+              private dateUtils: Dates,
+              private settingsService: SettingsService) { }
 
   ngOnInit() {
     this.currencyCode.valueChanges.subscribe(() => {
@@ -128,8 +131,8 @@ export class FixedDepositAccountChargesStepComponent implements OnInit, OnChange
     editChargeDateDialogRef.afterClosed().subscribe((response: any) => {
       if (response.data) {
         let newCharge: any;
-        const dateFormat = 'dd MMMM yyyy';
-        const date = this.datePipe.transform(response.data.value.date, dateFormat);
+        const dateFormat = this.settingsService.dateFormat;
+        const date = this.dateUtils.formatDate(response.data.value.date, dateFormat);
         switch (charge.chargeTimeType.value) {
           case 'Specified due date':
           case 'Weekly Fee':

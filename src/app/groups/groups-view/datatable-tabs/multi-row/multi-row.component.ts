@@ -3,7 +3,6 @@ import { Component, OnChanges, OnInit, Input, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatTable } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
-import { DatePipe } from '@angular/common';
 
 /** Custom Dialogs */
 import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
@@ -11,14 +10,12 @@ import { DeleteDialogComponent } from '../../../../shared/delete-dialog/delete-d
 
 /** Custom Models */
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
-import { InputBase } from 'app/shared/form-dialog/formfield/model/input-base';
-import { SelectBase } from 'app/shared/form-dialog/formfield/model/select-base';
-import { CheckboxBase } from 'app/shared/form-dialog/formfield/model/checkbox-base';
-import { DatepickerBase } from 'app/shared/form-dialog/formfield/model/datepicker-base';
 
 /** Custom Services */
 import { GroupsService } from '../../../groups.service';
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
+import { Datatables } from 'app/core/utils/datatables';
 
 /**
  * Group Multi Row Data Tables
@@ -50,16 +47,18 @@ export class MultiRowComponent implements OnInit, OnChanges {
   /**
    * Fetches group Id from parent route params.
    * @param {ActivatedRoute} route Activated Route.
-   * @param {DatePipe} datePipe Date Pipe.
+   * @param {Dates} dateUtils Date Utils.
    * @param {GroupsService} groupsService Groups Service.
    * @param {MatDialog} dialog Mat Dialog.
    * @param {SettingsService} settingsService SettingsService
+   * @param {Datatables} datatables Datatable utils
    */
   constructor(private route: ActivatedRoute,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private groupsService: GroupsService,
               private dialog: MatDialog,
-              private settingsService: SettingsService) {
+              private settingsService: SettingsService,
+              private datatables: Datatables) {
     this.groupId = this.route.parent.parent.snapshot.paramMap.get('groupId');
   }
 
@@ -93,56 +92,7 @@ export class MultiRowComponent implements OnInit, OnChanges {
     const columns = this.dataObject.columnHeaders.filter((column: any) => {
       return ((column.columnName !== 'id') && (column.columnName !== 'group_id'));
     });
-    const formfields: FormfieldBase[] = columns.map((column: any) => {
-      switch (column.columnDisplayType) {
-        case 'INTEGER':
-        case 'STRING':
-        case 'DECIMAL':
-        case 'TEXT': return new InputBase({
-          controlName: column.columnName,
-          label: column.columnName,
-          value: '',
-          type: (column.columnDisplayType === 'INTEGER' || column.columnDisplayType === 'DECIMAL') ? 'number' : 'text',
-          required: (column.isColumnNullable) ? false : true
-        });
-        case 'BOOLEAN': return new CheckboxBase({
-          controlName: column.columnName,
-          label: column.columnName,
-          value: '',
-          type: 'checkbox',
-          required: (column.isColumnNullable) ? false : true
-        });
-        case 'CODELOOKUP': return new SelectBase({
-          controlName: column.columnName,
-          label: column.columnName,
-          value: '',
-          options: { label: 'value', value: 'id', data: column.columnValues },
-          required: (column.isColumnNullable) ? false : true
-        });
-        case 'DATE': {
-          dateTransformColumns.push(column.columnName);
-          dataTableEntryObject.dateFormat = 'yyyy-MM-dd';
-          return new DatepickerBase({
-            controlName: column.columnName,
-            label: column.columnName,
-            value: '',
-            type: 'date',
-            required: (column.isColumnNullable) ? false : true
-          });
-        }
-        case 'DATETIME': {
-          dateTransformColumns.push(column.columnName);
-          dataTableEntryObject.dateFormat = 'yyyy-MM-dd HH:mm';
-          return new DatepickerBase({
-            controlName: column.columnName,
-            label: column.columnName,
-            value: '',
-            type: 'datetime-local',
-            required: (column.isColumnNullable) ? false : true
-          });
-        }
-      }
-    });
+    const formfields: FormfieldBase[] = this.datatables.getFormfields(columns, dateTransformColumns, dataTableEntryObject);
     const data = {
       title: 'Add ' + this.datatableName,
       formfields: formfields
@@ -151,7 +101,7 @@ export class MultiRowComponent implements OnInit, OnChanges {
     addDialogRef.afterClosed().subscribe((response: any) => {
       if (response.data) {
         dateTransformColumns.forEach((column) => {
-          response.data.value[column] = this.datePipe.transform(response.data.value[column], dataTableEntryObject.dateFormat);
+          response.data.value[column] = this.dateUtils.formatDate(response.data.value[column], dataTableEntryObject.dateFormat);
         });
         dataTableEntryObject = { ...response.data.value, ...dataTableEntryObject };
         this.groupsService.addGroupDatatableEntry(this.groupId, this.datatableName, dataTableEntryObject).subscribe(() => {

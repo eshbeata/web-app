@@ -1,12 +1,11 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
-import { MatDialog } from '@angular/material/dialog';
 import { LoansService } from 'app/loans/loans.service';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 
 /** Custom Services */
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 @Component({
   selector: 'mifosx-assign-loan-officer',
@@ -37,7 +36,7 @@ export class AssignLoanOfficerComponent implements OnInit {
     private loanService: LoansService,
     private route: ActivatedRoute,
     private router: Router,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private settingsService: SettingsService) {
       this.loanId = this.route.parent.snapshot.params['loanId'];
     }
@@ -46,6 +45,7 @@ export class AssignLoanOfficerComponent implements OnInit {
    * Creates the assign officer form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createassignOfficerForm();
     this.loanOfficers = this.dataObject.loanOfficerOptions;
   }
@@ -61,17 +61,20 @@ export class AssignLoanOfficerComponent implements OnInit {
   }
 
   submit() {
-    const assignmentDate = this.assignOfficerForm.value.assignmentDate;
+    const assignOfficerFormData = this.assignOfficerForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
-    this.assignOfficerForm.patchValue({
-      assignmentDate: this.datePipe.transform(assignmentDate, dateFormat)
-    });
-    const assignForm = this.assignOfficerForm.value;
-    assignForm.locale = this.settingsService.language.code;
-    assignForm.dateFormat = dateFormat;
-    assignForm.fromLoanOfficerId = this.dataObject.loanOfficerId || '';
-
-    this.loanService.loanActionButtons(this.loanId, 'assignLoanOfficer', assignForm)
+    const assignmentDate = this.assignOfficerForm.value.assignmentDate;
+    if (assignOfficerFormData.assignmentDate instanceof Date) {
+      assignOfficerFormData.assignmentDate = this.dateUtils.formatDate(assignmentDate, dateFormat);
+    }
+    const data = {
+      ...assignOfficerFormData,
+      dateFormat,
+      locale
+    };
+    data.fromLoanOfficerId = this.dataObject.loanOfficerId || '';
+    this.loanService.loanActionButtons(this.loanId, 'assignLoanOfficer', data)
       .subscribe((response: any) => {
         this.router.navigate([`../../general`], { relativeTo: this.route });
     });

@@ -1,11 +1,12 @@
 /** Angular Imports */
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 /** Custom Services */
 import { SharesService } from 'app/shares/shares.service';
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Close Shares Account Component
@@ -29,15 +30,17 @@ export class CloseSharesAccountComponent implements OnInit {
   /**
    * @param {FormBuilder} formBuilder Form Builder
    * @param {SharesService} sharesService Shares Service
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
+   * @param {SettingsService} settingsService Settings Service.
    */
   constructor(private formBuilder: FormBuilder,
               private sharesService: SharesService,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private route: ActivatedRoute,
-              private router: Router) {
+              private router: Router,
+              private settingsService: SettingsService) {
     this.accountId = this.route.parent.snapshot.params['shareAccountId'];
   }
 
@@ -45,6 +48,7 @@ export class CloseSharesAccountComponent implements OnInit {
    * Creates the close shares form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createCloseSharesAccountForm();
   }
 
@@ -63,15 +67,15 @@ export class CloseSharesAccountComponent implements OnInit {
    * if successful redirects to the share account.
    */
   submit() {
-    // TODO: Update once language and date settings are setup
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const closeSharesAccountFormData = this.closeSharesAccountForm.value;
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const prevClosedDate: Date = this.closeSharesAccountForm.value.closedDate;
-    this.closeSharesAccountForm.patchValue({
-      closedDate: this.datePipe.transform(prevClosedDate, dateFormat),
-    });
+    if (closeSharesAccountFormData.closedDate instanceof Date) {
+      closeSharesAccountFormData.closedDate = this.dateUtils.formatDate(prevClosedDate, dateFormat);
+    }
     const data = {
-      ...this.closeSharesAccountForm.value,
+      ...closeSharesAccountFormData,
       dateFormat,
       locale
     };

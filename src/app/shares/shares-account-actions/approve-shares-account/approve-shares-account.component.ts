@@ -1,11 +1,12 @@
 /** Angular Imports */
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 /** Custom Services */
 import { SharesService } from 'app/shares/shares.service';
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Approve Shares Account Component
@@ -29,15 +30,17 @@ export class ApproveSharesAccountComponent implements OnInit {
   /**
    * @param {FormBuilder} formBuilder Form Builder
    * @param {SharesService} sharesService Shares Service
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
+   * @param {SettingsService} settingsService Settings Service.
    */
   constructor(private formBuilder: FormBuilder,
               private sharesService: SharesService,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private route: ActivatedRoute,
-              private router: Router) {
+              private router: Router,
+              private settingsService: SettingsService) {
     this.accountId = this.route.parent.snapshot.params['shareAccountId'];
   }
 
@@ -45,6 +48,7 @@ export class ApproveSharesAccountComponent implements OnInit {
    * Creates the approve shares form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createApproveSharesAccountForm();
   }
 
@@ -63,15 +67,15 @@ export class ApproveSharesAccountComponent implements OnInit {
    * if successful redirects to the share account.
    */
   submit() {
-    // TODO: Update once language and date settings are setup
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const approveSharesAccountFormData = this.approveSharesAccountForm.value;
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const prevApprovedDate: Date = this.approveSharesAccountForm.value.approvedDate;
-    this.approveSharesAccountForm.patchValue({
-      approvedDate: this.datePipe.transform(prevApprovedDate, dateFormat),
-    });
+    if (approveSharesAccountFormData.approvedDate instanceof Date) {
+      approveSharesAccountFormData.approvedDate = this.dateUtils.formatDate(prevApprovedDate, dateFormat);
+    }
     const data = {
-      ...this.approveSharesAccountForm.value,
+      ...approveSharesAccountFormData,
       dateFormat,
       locale
     };

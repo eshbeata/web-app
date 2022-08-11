@@ -4,17 +4,18 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 
 /** Custom Data Source */
 import { AuditTrailsDataSource } from './audit-trail.datasource';
 
 /** Custom Services */
 import { SystemService } from '../system.service';
+import { SettingsService } from 'app/settings/settings.service';
 
 /** rxjs Imports */
 import { merge } from 'rxjs';
 import { tap, debounceTime, distinctUntilChanged, startWith, map } from 'rxjs/operators';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Audit Trails Component.
@@ -90,11 +91,11 @@ export class AuditTrailsComponent implements OnInit, AfterViewInit {
     },
     {
       type: 'dateFormat',
-      value: 'yyyy-MM-dd'
+      value: this.settingsService.dateFormat
     },
     {
       type: 'locale',
-      value: 'en'
+      value: this.settingsService.language.code
     }
   ];
   /** User form control. */
@@ -127,10 +128,13 @@ export class AuditTrailsComponent implements OnInit, AfterViewInit {
    * Retrieves the audit trail search template data from `resolve`.
    * @param {ActivatedRoute} route Activated Route.
    * @param {SystemService} systemService System Service.
+   * @param {Dates} dateUtils Dates utils
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private route: ActivatedRoute,
               private systemService: SystemService,
-              private datePipe: DatePipe) {
+              private dateUtils: Dates,
+              private settingsService: SettingsService) {
     this.route.data.subscribe((data: { auditTrailSearchTemplate: any }) => {
       this.auditTrailSearchTemplateData = data.auditTrailSearchTemplate;
     });
@@ -140,6 +144,7 @@ export class AuditTrailsComponent implements OnInit, AfterViewInit {
    * Sets filtered users, actions and entities for autocomplete and audit trails table.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.setFilteredUsers();
     this.setFilteredActions();
     this.setFilteredEntities();
@@ -382,14 +387,14 @@ export class AuditTrailsComponent implements OnInit, AfterViewInit {
    * Generates the CSV file of Audit Trails Data.
    */
   downloadCSV() {
-    const dateFormat = 'yyyy-MM-dd';
+    const dateFormat = this.settingsService.dateFormat;
     const replacer = (key: any, value: any) => value === undefined ? '' : value;
     const header = ['ID', 'Resource ID', 'Status', 'Office', 'Made On', 'Maker', 'Checked On', 'Checker', 'Entity', 'Action', 'Client'];
     const headerCode = ['id', 'resourceId', 'processingResult', 'officeName', 'madeOnDate', 'maker', 'checkedOnDate', 'checker', 'entityName', 'actionName', 'clientName'];
     this.systemService.getAuditTrails(this.filterAuditTrailsBy, this.sort.active ? this.sort.active : '', this.sort.direction, 0, -1).subscribe((response: any) => {
       if (response !== undefined) {
         let csv = response.pageItems.map((row: any) => headerCode.map(fieldName => (fieldName === 'madeOnDate' || fieldName === 'checkedOnDate') && (JSON.stringify(row[fieldName], replacer) !== '""')
-          ? this.datePipe.transform(JSON.stringify(row[fieldName], replacer), dateFormat)
+          ? this.dateUtils.formatDate(JSON.stringify(row[fieldName], replacer), dateFormat)
           : JSON.stringify(row[fieldName], replacer)));
         csv.unshift(`data:text/csv;charset=utf-8,${header.join()}`);
         csv = csv.join('\r\n');
@@ -411,8 +416,8 @@ export class AuditTrailsComponent implements OnInit, AfterViewInit {
    * @param {any} timestamp Timestamp from which date is to be extracted.
    */
   private getDate(timestamp: any) {
-    const dateFormat = 'yyyy-MM-dd';
-    return this.datePipe.transform(timestamp, dateFormat);
+    const dateFormat = this.settingsService.dateFormat;
+    return this.dateUtils.formatDate(timestamp, dateFormat);
   }
 
 }

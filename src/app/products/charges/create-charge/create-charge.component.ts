@@ -2,10 +2,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Custom Services */
 import { ProductsService } from '../../products.service';
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Create charge component.
@@ -42,17 +43,23 @@ export class CreateChargeComponent implements OnInit {
    * @param {ProductsService} productsService Products Service.
    * @param {ActivatedRoute} route Activated Route.
    * @param {Router} router Router for navigation.
-   * @param {DatePipe} datePipe Date Pipe to format date.
+   * @param {Dates} dateUtils Date Utils to format date.
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
               private productsService: ProductsService,
               private route: ActivatedRoute,
               private router: Router,
-              private datePipe: DatePipe) {
+              private dateUtils: Dates,
+              private settingsService: SettingsService) {
     this.route.data.subscribe((data: { chargesTemplate: any }) => {
       this.chargesTemplateData = data.chargesTemplate;
-      this.incomeAndLiabilityAccountData = data.chargesTemplate.incomeOrLiabilityAccountOptions.incomeAccountOptions
-        .concat(data.chargesTemplate.incomeOrLiabilityAccountOptions.liabilityAccountOptions);
+      if (data.chargesTemplate.incomeOrLiabilityAccountOptions.liabilityAccountOptions) {
+        this.incomeAndLiabilityAccountData = data.chargesTemplate.incomeOrLiabilityAccountOptions.incomeAccountOptions
+          .concat(data.chargesTemplate.incomeOrLiabilityAccountOptions.liabilityAccountOptions);
+      } else {
+        this.incomeAndLiabilityAccountData = data.chargesTemplate.incomeOrLiabilityAccountOptions.incomeAccountOptions;
+      }
     });
   }
 
@@ -78,7 +85,9 @@ export class CreateChargeComponent implements OnInit {
       'amount': ['', [Validators.required, Validators.pattern('^\\s*(?=.*[1-9])\\d*(?:\\.\\d+)?\\s*$')]],
       'active': [false],
       'penalty': [false],
-      'taxGroupId': ['']
+      'taxGroupId': [''],
+      'minCap': [''],
+      'maxCap': ['']
     });
   }
 
@@ -151,7 +160,6 @@ export class CreateChargeComponent implements OnInit {
           this.chargeForm.removeControl('chargePaymentMode');
           this.chargeForm.removeControl('incomeAccountId');
           this.chargeForm.get('penalty').setValue(false);
-          this.chargeForm.get('penalty').disable();
           break;
       }
       this.chargeForm.get('chargeCalculationType').reset();
@@ -176,7 +184,6 @@ export class CreateChargeComponent implements OnInit {
           break;
         case 9: // Overdue Fee
           this.chargeForm.get('penalty').setValue(true);
-          this.chargeForm.get('penalty').disable();
           this.chargeForm.addControl('addFeeFrequency', new FormControl(false));
           this.chargeForm.get('addFeeFrequency').valueChanges.subscribe((addFeeFrequency) => {
             if (addFeeFrequency) {
@@ -209,20 +216,29 @@ export class CreateChargeComponent implements OnInit {
    * if successful redirects to charges.
    */
   submit() {
+    const chargeFormData = this.chargeForm.value;
+    const locale = this.settingsService.language.code;
     const prevFeeOnMonthDay: Date = this.chargeForm.value.feeOnMonthDay;
     const monthDayFormat = 'dd MMM';
-    this.chargeForm.patchValue({
-      feeOnMonthDay: this.datePipe.transform(prevFeeOnMonthDay, monthDayFormat)
-    });
-    const charge = this.chargeForm.getRawValue();
-    // TODO: Update once language and date settings are setup
-    charge.locale = 'en';
-    charge.monthDayFormat = monthDayFormat;
-    delete charge.addFeeFrequency;
-    if (!charge.taxGroupId) {
-      delete charge.taxGroupId;
+    if (chargeFormData.feeOnMonthDay instanceof Date) {
+      chargeFormData.feeOnMonthDay = this.dateUtils.formatDate(prevFeeOnMonthDay, monthDayFormat);
     }
-    this.productsService.createCharge(charge).subscribe((response: any) => {
+    const data = {
+      ...chargeFormData,
+      monthDayFormat,
+      locale
+    };
+    delete data.addFeeFrequency;
+    if (!data.taxGroupId) {
+      delete data.taxGroupId;
+    }
+    if (!data.minCap) {
+      delete data.minCap;
+    }
+    if (!data.maxCap) {
+      delete data.maxCap;
+    }
+    this.productsService.createCharge(data).subscribe((response: any) => {
       this.router.navigate(['../'], { relativeTo: this.route });
     });
   }

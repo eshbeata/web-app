@@ -51,6 +51,9 @@ const routes: Routes = [
         {
           path: ':centerId',
           data: { title: extract('Centers View'), routeParamBreadcrumb: 'centerId' },
+          resolve: {
+            centerViewData: CenterViewResolver,
+          },
           children: [
             {
               path: '',

@@ -1,11 +1,12 @@
 /** Angular Imports */
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 /** Custom Services */
 import { SharesService } from 'app/shares/shares.service';
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Reject Shares Account Component
@@ -29,15 +30,17 @@ export class RejectSharesAccountComponent implements OnInit {
   /**
    * @param {FormBuilder} formBuilder Form Builder
    * @param {SharesService} sharesService Shares Service
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
               private sharesService: SharesService,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private route: ActivatedRoute,
-              private router: Router) {
+              private router: Router,
+              private settingsService: SettingsService) {
     this.accountId = this.route.parent.snapshot.params['shareAccountId'];
   }
 
@@ -45,6 +48,7 @@ export class RejectSharesAccountComponent implements OnInit {
    * Creates the reject shares form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createRejectSharesAccountForm();
   }
 
@@ -63,15 +67,15 @@ export class RejectSharesAccountComponent implements OnInit {
    * if successful redirects to the share account.
    */
   submit() {
-    // TODO: Update once language and date settings are setup
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const rejectSharesAccountFormData = this.rejectSharesAccountForm.value;
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const prevRejectedDate: Date = this.rejectSharesAccountForm.value.rejectedDate;
-    this.rejectSharesAccountForm.patchValue({
-      rejectedDate: this.datePipe.transform(prevRejectedDate, dateFormat),
-    });
+    if (rejectSharesAccountFormData.rejectedDate instanceof Date) {
+      rejectSharesAccountFormData.rejectedDate = this.dateUtils.formatDate(prevRejectedDate, dateFormat);
+    }
     const data = {
-      ...this.rejectSharesAccountForm.value,
+      ...rejectSharesAccountFormData,
       dateFormat,
       locale
     };

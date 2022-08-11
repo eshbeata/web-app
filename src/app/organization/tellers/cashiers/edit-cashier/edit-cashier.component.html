@@ -41,7 +41,7 @@
             <input matInput autofocus formControlName="description">
           </mat-form-field>
 
-          <mat-form-field fxFlex="48%">
+          <mat-form-field fxFlex="48%" (click)="fromDatePicker.open()">
             <mat-label>From</mat-label>
             <input matInput [min]="minDate" [max]="maxDate" [matDatepicker]="fromDatePicker" required formControlName="startDate">
             <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
@@ -51,7 +51,7 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field fxFlex="48%">
+          <mat-form-field fxFlex="48%" (click)="toDatePicker.open()">
             <mat-label>To</mat-label>
             <input matInput [min]="minDate" [max]="maxDate" [matDatepicker]="toDatePicker" required formControlName="endDate">
             <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
@@ -61,7 +61,7 @@
             </mat-error>
           </mat-form-field>
 
-          <div fxFlex="48%" style="padding-top: 10px;">
+          <div fxFlex="48%" class="space">
             <mat-checkbox labelPosition="before" formControlName="isFullDay">
               Full Day?
             </mat-checkbox>

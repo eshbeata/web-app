@@ -1,16 +1,22 @@
+/** Angular Imports */
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormArray } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 
+/** Custom Components */
 import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
 import { DepositProductIncentiveFormDialogComponent } from 'app/products/deposit-product-incentive-form-dialog/deposit-product-incentive-form-dialog.component';
 import { DeleteDialogComponent } from 'app/shared/delete-dialog/delete-dialog.component';
 
+/** Dialog Components */
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
 import { SelectBase } from 'app/shared/form-dialog/formfield/model/select-base';
 import { InputBase } from 'app/shared/form-dialog/formfield/model/input-base';
+
+
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 @Component({
   selector: 'mifosx-recurring-deposit-product-interest-rate-chart-step',
@@ -50,9 +56,17 @@ export class RecurringDepositProductInterestRateChartStepComponent implements On
   chartDetailData: any = [];
   chartsDetail: any[] = [];
 
+  /**
+   * @param {FormBuilder} formBuilder Form Builder.
+   * @param {MatDialog} dialog Dialog reference.
+   * @param {Dates} dateUtils Date Utils to format date.
+   * @param {SettingsService} settingsService Settings Service.
+   */
+
   constructor(private formBuilder: FormBuilder,
-    public dialog: MatDialog,
-    private datePipe: DatePipe) {
+              public dialog: MatDialog,
+              private dateUtils: Dates,
+              private settingsService: SettingsService) {
     this.createrecurringDepositProductInterestRateChartForm();
   }
 
@@ -66,7 +80,7 @@ export class RecurringDepositProductInterestRateChartStepComponent implements On
     this.clientClassificationData = this.recurringDepositProductsTemplate.chartTemplate.clientClassificationOptions;
     this.incentiveTypeData = this.recurringDepositProductsTemplate.chartTemplate.incentiveTypeOptions;
 
-    if (!(this.recurringDepositProductsTemplate === undefined) && this.recurringDepositProductsTemplate.id) {
+    if (!(this.recurringDepositProductsTemplate === undefined)) {
       this.assignFormData();
     }
   }
@@ -75,10 +89,12 @@ export class RecurringDepositProductInterestRateChartStepComponent implements On
   assignFormData() {
     this.addChart();
     const isChartArray = Array.isArray(this.recurringDepositProductsTemplate.activeChart);
-    if (!isChartArray) {
-      this.chartDetailData.push(this.recurringDepositProductsTemplate.activeChart);
-    } else {
-      this.chartDetailData = this.recurringDepositProductsTemplate.activeChart;
+    if (this.recurringDepositProductsTemplate.activeChart) {
+      if (!isChartArray) {
+        this.chartDetailData.push(this.recurringDepositProductsTemplate.activeChart);
+      } else {
+        this.chartDetailData = this.recurringDepositProductsTemplate.activeChart;
+      }
     }
 
     // Build the array of Objects from the retrived value
@@ -86,6 +102,10 @@ export class RecurringDepositProductInterestRateChartStepComponent implements On
 
     // Iterates for every chart in charts
     this.charts.controls.forEach((chartDetailControl: FormGroup, i: number) => {
+
+      if (!this.chartsDetail[i]) {
+        return;
+      }
 
       // Iterate for every chartSlab in chart
       this.chartsDetail[i].chartSlabs.forEach((chartSlabDetail: any, j: number) => {
@@ -350,14 +370,14 @@ export class RecurringDepositProductInterestRateChartStepComponent implements On
 
   get recurringDepositProductInterestRateChart() {
     // TODO: Update once language and date settings are setup
-    const dateFormat = 'yyyy-MM-dd';
-    const locale = 'en';
+    const dateFormat = this.settingsService.dateFormat;
+    const locale = this.settingsService.language.code;
     const recurringDepositProductInterestRateChart = this.recurringDepositProductInterestRateChartForm.value;
     for (const chart of recurringDepositProductInterestRateChart.charts) {
       chart.dateFormat = dateFormat;
       chart.locale = locale;
-      chart.fromDate = this.datePipe.transform(chart.fromDate, dateFormat) || '';
-      chart.endDate = this.datePipe.transform(chart.endDate, dateFormat) || '';
+      chart.fromDate = this.dateUtils.formatDate(chart.fromDate, dateFormat) || '';
+      chart.endDate = this.dateUtils.formatDate(chart.endDate, dateFormat) || '';
       if (chart.endDate === '') {
         delete chart.endDate;
       }

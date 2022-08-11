@@ -1,12 +1,12 @@
 /** Angular Imports */
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 /** Custom Services */
 import { RecurringDepositsService } from '../../recurring-deposits.service';
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Close Recurring Deposits Account Component
@@ -42,14 +42,14 @@ export class CloseRecurringDepositsAccountComponent implements OnInit {
    * @param {FormBuilder} formBuilder Form Builder
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {SettingsService} settingsService Settings Service
    */
   constructor(
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private recurringDepositsService: RecurringDepositsService,
     private settingsService: SettingsService
   ) {
@@ -67,6 +67,7 @@ export class CloseRecurringDepositsAccountComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createcloseRecurringDepositForm();
   }
 
@@ -99,14 +100,15 @@ export class CloseRecurringDepositsAccountComponent implements OnInit {
    * Submits the close recurring deposit form
    */
   submit() {
+    const closeRecurringDepositFormData = this.closeRecurringDepositForm.value;
     const closedOnDate = this.closeRecurringDepositForm.value.closedOnDate;
     const dateFormat = this.settingsService.dateFormat;
     const locale = this.settingsService.language.code;
-    this.closeRecurringDepositForm.patchValue({
-      closedOnDate: this.datePipe.transform(closedOnDate, dateFormat)
-    });
+    if (closeRecurringDepositFormData.closedOnDate instanceof Date) {
+      closeRecurringDepositFormData.closedOnDate = this.dateUtils.formatDate(closedOnDate, dateFormat);
+    }
     const data = {
-      ...this.closeRecurringDepositForm.value,
+      ...closeRecurringDepositFormData,
       dateFormat,
       locale
     };

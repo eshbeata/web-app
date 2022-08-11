@@ -2,7 +2,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { DatePipe } from '@angular/common';
 
 /** Custom Components */
 import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
@@ -17,6 +16,8 @@ import { CheckboxBase } from 'app/shared/form-dialog/formfield/model/checkbox-ba
 
 /** Custom Services */
 import { SavingsService } from 'app/savings/savings.service';
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 
 /**
@@ -40,14 +41,16 @@ export class SingleRowComponent implements OnInit {
   /**
    * Fetches savings account Id from parent route params.
    * @param {ActivatedRoute} route Activated Route.
-   * @param {DatePipe} datePipe Date Pipe.
+   * @param {Dates} dateUtils Date Utils.
    * @param {SavingsService} savingsService Savingss Service.
    * @param {MatDialog} dialog Mat Dialog.
+   * @param {SettingsService} settingsService Settings Service.
    */
   constructor(private route: ActivatedRoute,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private dialog: MatDialog,
-              private savingsService: SavingsService) {
+              private savingsService: SavingsService,
+              private settingsService: SettingsService) {
     this.accountId = this.route.parent.parent.snapshot.paramMap.get('fixedDepositAccountId');
   }
 
@@ -65,7 +68,7 @@ export class SingleRowComponent implements OnInit {
    * Creates a new instance of the given single row data table.
    */
   add() {
-    let dataTableEntryObject: any = { locale: 'en' };
+    let dataTableEntryObject: any = { locale: this.settingsService.language.code };
     const dateTransformColumns: string[] = [];
     const columns = this.dataObject.columnHeaders.filter((column: any) => {
       return ((column.columnName !== 'id') && (column.columnName !== 'savings_account_id'));
@@ -79,7 +82,7 @@ export class SingleRowComponent implements OnInit {
     addDialogRef.afterClosed().subscribe((response: any) => {
       if (response.data) {
         dateTransformColumns.forEach((column) => {
-          response.data.value[column] = this.datePipe.transform(response.data.value[column], dataTableEntryObject.dateFormat);
+          response.data.value[column] = this.dateUtils.formatDate(response.data.value[column], dataTableEntryObject.dateFormat);
         });
         dataTableEntryObject = { ...response.data.value, ...dataTableEntryObject };
         this.savingsService.addSavingsDatatableEntry(this.accountId, this.datatableName, dataTableEntryObject).subscribe(() => {
@@ -95,7 +98,7 @@ export class SingleRowComponent implements OnInit {
    * Edits the current instance of single row data table.
    */
   edit() {
-    let dataTableEntryObject: any = { locale: 'en' };
+    let dataTableEntryObject: any = { locale: this.settingsService.language.code };
     const dateTransformColumns: string[] = [];
     const columns = this.dataObject.columnHeaders.filter((column: any) => {
       return ((column.columnName !== 'id') && (column.columnName !== 'savings_account_id'));
@@ -114,7 +117,7 @@ export class SingleRowComponent implements OnInit {
     editDialogRef.afterClosed().subscribe((response: any) => {
       if (response.data) {
         dateTransformColumns.forEach((column) => {
-          response.data.value[column] = this.datePipe.transform(response.data.value[column], dataTableEntryObject.dateFormat);
+          response.data.value[column] = this.dateUtils.formatDate(response.data.value[column], dataTableEntryObject.dateFormat);
         });
         dataTableEntryObject = { ...response.data.value, ...dataTableEntryObject };
         this.savingsService.editSavingsDatatableEntry(this.accountId, this.datatableName, dataTableEntryObject).subscribe(() => {
@@ -148,7 +151,7 @@ export class SingleRowComponent implements OnInit {
   /**
    * Maps API response to data table form fields.
    * @param {any} columns Data Table Columns.
-   * @param {string[]} dateTransformColumns Columns transformed with date pipe.
+   * @param {string[]} dateTransformColumns Columns transformed with Date Utils.
    * @param {any} dataTableEntryObject Additional data table details.
    */
   getFormfields(columns: any, dateTransformColumns: string[], dataTableEntryObject: any) {
@@ -180,7 +183,7 @@ export class SingleRowComponent implements OnInit {
         });
         case 'DATE': {
           dateTransformColumns.push(column.columnName);
-          dataTableEntryObject.dateFormat = 'yyyy-MM-dd';
+          dataTableEntryObject.dateFormat = this.settingsService.dateFormat;
           return new DatepickerBase({
             controlName: column.columnName,
             label: column.columnName,

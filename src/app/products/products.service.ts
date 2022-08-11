@@ -5,6 +5,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 /** rxjs Imports */
 import { Observable } from 'rxjs';
 
+/** Custom Services */
+import { SettingsService } from 'app/settings/settings.service';
+
 /**
  * Products service.
  */
@@ -15,8 +18,10 @@ export class ProductsService {
 
   /**
    * @param {HttpClient} http Http Client to send requests.
+   * @param {SettingsService} settingsService Settings Service.
    */
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient,
+              private settingsService: SettingsService) { }
 
   /**
    * @returns {Observable<any>} Loan products data
@@ -105,10 +110,10 @@ export class ProductsService {
   }
 
   getDividendData(shareProductId: any, dividendId: any): Observable<any> {
-    const httpParams = new HttpParams().set('dateFormat', 'dd MMMM yyyy')
-                                        .set('limit', '10')
-                                        .set('locale', 'en')
-                                        .set('offset', '0');
+    const httpParams = new HttpParams().set('dateFormat', this.settingsService.dateFormat)
+                                       .set('limit', '10')
+                                       .set('locale', this.settingsService.language.code)
+                                       .set('offset', '0');
     return this.http.get(`/shareproduct/${shareProductId}/dividend/${dividendId}`, { params: httpParams });
   }
 
@@ -295,6 +300,86 @@ export class ProductsService {
   }
 
   /**
+   * @returns {Observable<any>} Delinquency Range data
+   */
+  getDelinquencyRanges(): Observable<any> {
+    return this.http.get('/delinquency/ranges');
+  }
+
+  /**
+   * @param {any} delinquencyRateId Delinquency Range Id.
+   * @returns {Observable<any>} Delinquency Range data.
+   */
+   getDelinquencyRange(delinquencyRateId: any): Observable<any> {
+    return this.http.get(`/delinquency/ranges/${delinquencyRateId}`);
+  }
+
+  /**
+   * @param {any} payload Delinquency Range data
+   * @returns {Observable<any>} Delinquency Range Resource Id
+   */
+   createDelinquencyRange(payload: any): Observable<any> {
+    return this.http.post('/delinquency/ranges', payload);
+  }
+
+  /**
+   * @param {any} delinquencyRateId Delinquency Range ID
+   * @param {any} payload Delinquency Range data
+   * @returns {Observable<any>} Changes in the Delinquency Range
+   */
+  updateDelinquencyRange(delinquencyRateId: any, payload: any): Observable<any> {
+    return this.http.put(`/delinquency/ranges/${delinquencyRateId}`, payload);
+  }
+
+  /**
+   * @param {any} delinquencyRateId Delinquency Range ID
+   * @returns {Observable<any>} Changes in the Delinquency Range
+   */
+  deleteDelinquencyRange(delinquencyRateId: any): Observable<any> {
+    return this.http.delete(`/delinquency/ranges/${delinquencyRateId}`);
+  }
+
+  /**
+   * @returns {Observable<any>} Delinquency Bucket data
+   */
+  getDelinquencyBuckets(): Observable<any> {
+    return this.http.get('/delinquency/buckets');
+  }
+
+  /**
+   * @param {any} delinquencyBucketId Delinquency Bucket Id.
+   * @returns {Observable<any>} Delinquency Bucket data.
+   */
+  getDelinquencyBucket(delinquencyBucketId: any): Observable<any> {
+    return this.http.get(`/delinquency/buckets/${delinquencyBucketId}`);
+  }
+
+  /**
+   * @param {any} payload Delinquency Bucket data
+   * @returns {Observable<any>} Delinquency Bucket Resource Id
+   */
+  createDelinquencyBucket(payload: any): Observable<any> {
+    return this.http.post('/delinquency/buckets', payload);
+  }
+
+  /**
+   * @param {any} delinquencyBucketId Delinquency Bucket ID
+   * @param {any} payload Delinquency Bucket data
+   * @returns {Observable<any>} Changes in the Delinquency Bucket
+   */
+  updateDelinquencyBucket(delinquencyBucketId: any, payload: any): Observable<any> {
+    return this.http.put(`/delinquency/buckets/${delinquencyBucketId}`, payload);
+  }
+
+  /**
+   * @param {any} delinquencyBucketId Delinquency Bucket ID
+   * @returns {Observable<any>} Changes in the Delinquency Bucket
+   */
+  deleteDelinquencyBucket(delinquencyBucketId: any): Observable<any> {
+    return this.http.delete(`/delinquency/buckets/${delinquencyBucketId}`);
+  }
+
+  /**
    * @returns {Observable<any>} Product mixes data
    */
   getProductMixes(): Observable<any> {
@@ -394,7 +479,7 @@ export class ProductsService {
    */
   getAllInterestRateCharts(productId: string): Observable<any> {
     const httpParams = new HttpParams().set('productId', productId);
-    return this.http.get(`/interestratecharts`, {params: httpParams});
+    return this.http.get(`/interestratecharts`, { params: httpParams });
   }
 
   createRecurringDepositProduct(recurringDepositProduct: any): Observable<any> {
@@ -408,6 +493,53 @@ export class ProductsService {
 
   updateRecurringDepositProduct(recurringDepositProductId: any, recurringDepositProduct: any): Observable<any> {
     return this.http.put(`/recurringdepositproducts/${recurringDepositProductId}`, recurringDepositProduct);
+  }
+
+  /**
+   * @returns {Observable<any>} Collateral data.
+   */
+  getCollaterals(): Observable<any> {
+    return this.http.get('/collateral-management');
+  }
+
+  /**
+   * @returns {Observable<any>} Collateral Template.
+   */
+  getCollateralTemplate(): Observable<any> {
+    return this.http.get('/collateral-management/template');
+  }
+
+  /**
+   * @param {string} collateralId Collateral ID of Collateral.
+   * @returns {Observable<any>} Collateral.
+   */
+  getCollateral(collateralId: string, template: boolean = false): Observable<any> {
+    const httpParams = new HttpParams().set('template', template.toString());
+    return this.http.get(`/collateral-management/${collateralId}`, { params: httpParams });
+  }
+
+  /**
+   * @param collateralId Collateral Id to be updated.
+   * @param collateral  Collateral Data to be updated.
+   */
+  updateCollateral(collateralId: string, collateral: any): Observable<any> {
+    return this.http.put(`/collateral-management/${collateralId}`, collateral);
+  }
+
+  /**
+   * @param {string} collateralId  Collateral ID of Collateral to be deleted.
+   * @returns {Observable<any>}
+   */
+  deleteCollateral(collateralId: string): Observable<any> {
+    return this.http.delete(`/collateral-management/${collateralId}`);
+  }
+
+  /**
+   * @param {any} collateral Collateral to be created.
+   * @returns {Observable<any>}
+   */
+  createCollateral(collateral: any): Observable<any> {
+    return this.http.post('/collateral-management', collateral);
   }
 
 }

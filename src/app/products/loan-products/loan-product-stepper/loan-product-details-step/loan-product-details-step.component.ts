@@ -1,6 +1,10 @@
+/** Angular Imports */
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
+import { Dates } from 'app/core/utils/dates';
+
+/** Custom Services */
+import { SettingsService } from 'app/settings/settings.service';
 
 @Component({
   selector: 'mifosx-loan-product-details-step',
@@ -18,8 +22,15 @@ export class LoanProductDetailsStepComponent implements OnInit {
   minDate = new Date(2000, 0, 1);
   maxDate = new Date(new Date().setFullYear(new Date().getFullYear() + 10));
 
+  /**
+   * @param {FormBuilder} formBuilder Form Builder.
+   * @param {Dates} dateUtils Date Utils.
+   * @param {SettingsService} settingsService Settings Service.
+   */
+
   constructor(private formBuilder: FormBuilder,
-              private datePipe: DatePipe) {
+              private dateUtils: Dates,
+              private settingsService: SettingsService) {
     this.createLoanProductDetailsForm();
   }
 
@@ -50,15 +61,17 @@ export class LoanProductDetailsStepComponent implements OnInit {
   }
 
   get loanProductDetails() {
+    const loanProductDetailsFormData = this.loanProductDetailsForm.value;
     const prevStartDate: Date = this.loanProductDetailsForm.value.startDate;
     const prevCloseDate: Date = this.loanProductDetailsForm.value.closeDate;
-    // TODO: Update once language and date settings are setup
-    const dateFormat = 'yyyy-MM-dd';
-    this.loanProductDetailsForm.patchValue({
-      startDate: this.datePipe.transform(prevStartDate, dateFormat) || '',
-      closeDate: this.datePipe.transform(prevCloseDate, dateFormat) || ''
-    });
-    return this.loanProductDetailsForm.value;
+    const dateFormat = this.settingsService.dateFormat;
+    if (loanProductDetailsFormData.startDate instanceof Date) {
+      loanProductDetailsFormData.startDate = this.dateUtils.formatDate(prevStartDate, dateFormat) || '';
+    }
+    if (loanProductDetailsFormData.closeDate instanceof Date) {
+      loanProductDetailsFormData.closeDate = this.dateUtils.formatDate(prevCloseDate, dateFormat) || '';
+    }
+    return loanProductDetailsFormData;
   }
 
 }

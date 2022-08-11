@@ -23,7 +23,6 @@
             "main": "src/main.ts",
             "tsConfig": "src/tsconfig.app.json",
             "polyfills": "src/polyfills.ts",
-            "extractCss": true,
             "assets": [
               "src/favicon.ico",
               "src/robots.txt",
@@ -31,33 +30,44 @@
               "src/assets"
             ],
             "styles": [
+              "node_modules/font-awesome/css/font-awesome.css",
               "src/main.scss",
-              {"inject":false,
+              {
+                "inject": false,
                 "input": "src/theme/deeppurple-amber.scss",
-                "bundleName": "theme/deeppurple-amber"
-},
-              {"inject":false,
+                "bundleName": "deeppurple-amber"
+              },
+              {
+                "inject": false,
                 "input": "src/theme/indigo-pink.scss",
-                "bundleName": "theme/indigo-pink"
-},
-              {"inject":false,
+                "bundleName": "indigo-pink"
+              },
+              {
+                "inject": false,
                 "input": "src/theme/pink-bluegrey.scss",
-                "bundleName": "theme/pink-bluegrey"
-},
-              {"inject":false,
+                "bundleName": "pink-bluegrey"
+              },
+              {
+                "inject": false,
                 "input": "src/theme/purple-green.scss",
-                "bundleName": "theme/purple-green"
-},
-              {"inject":false,
+                "bundleName": "purple-green"
+              },
+              {
+                "inject": false,
                 "input": "src/theme/custom/denim-yellowgreen.scss",
-                "bundleName": "theme/denim-yellowgreen"
-},
-              {"inject":false,
+                "bundleName": "denim-yellowgreen"
+              },
+              {
+                "inject": false,
                 "input": "src/theme/custom/pictonblue-yellowgreen.scss",
-                "bundleName": "theme/pictonblue-yellowgreen"
-}
+                "bundleName": "pictonblue-yellowgreen"
+              }
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "lodash",
+              "@ckeditor/ckeditor5-build-classic"
+            ]
           },
           "configurations": {
             "production": {
@@ -70,13 +80,12 @@
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
-              "extractCss": true,
               "namedChunks": false,
               "aot": true,
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true,
-              "serviceWorker": true,
+              "serviceWorker": false,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -107,36 +116,42 @@
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "main": "src/test.ts",
-            "karmaConfig": "src/karma.conf.js",
+            "karmaConfig": "src/karma.conf.ts",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "src/tsconfig.spec.json",
             "scripts": [],
             "styles": [
               "src/main.scss",
-              {"inject":false,
+              {
+                "inject": false,
                 "input": "src/theme/deeppurple-amber.scss",
-                "bundleName": "theme/deeppurple-amber"
-},
-              {"inject":false,
+                "bundleName": "deeppurple-amber"
+              },
+              {
+                "inject": false,
                 "input": "src/theme/indigo-pink.scss",
-                "bundleName": "theme/indigo-pink"
-},
-              {"inject":false,
+                "bundleName": "indigo-pink"
+              },
+              {
+                "inject": false,
                 "input": "src/theme/pink-bluegrey.scss",
-                "bundleName": "theme/pink-bluegrey"
-},
-              {"inject":false,
+                "bundleName": "pink-bluegrey"
+              },
+              {
+                "inject": false,
                 "input": "src/theme/purple-green.scss",
-                "bundleName": "theme/purple-green"
-},
-              {"inject":false,
+                "bundleName": "purple-green"
+              },
+              {
+                "inject": false,
                 "input": "src/theme/custom/denim-yellowgreen.scss",
-                "bundleName": "theme/denim-yellowgreen"
-},
-              {"inject":false,
+                "bundleName": "denim-yellowgreen"
+              },
+              {
+                "inject": false,
                 "input": "src/theme/custom/pictonblue-yellowgreen.scss",
-                "bundleName": "theme/pictonblue-yellowgreen"
-}
+                "bundleName": "pictonblue-yellowgreen"
+              }
             ],
             "assets": [
               "src/favicon.ico",

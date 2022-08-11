@@ -2,8 +2,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { distinctUntilChanged } from 'rxjs/operators';
-import { DatePipe } from '@angular/common';
+import { Dates } from 'app/core/utils/dates';
 
 /** Custom Services. */
 import { LoansService } from 'app/loans/loans.service';
@@ -34,14 +33,14 @@ export class ApproveLoanComponent implements OnInit {
    * Retrieve data from `Resolver`.
    * @param formBuilder Form Builder.
    * @param route Activated Route.
-   * @param datePipe Date Pipe.
+   * @param dateUtils Date Utils.
    * @param loanService Loan Service.
    * @param router Router.
    * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
     private route: ActivatedRoute,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private loanService: LoansService,
     private router: Router,
     private settingsService: SettingsService) {
@@ -77,20 +76,23 @@ export class ApproveLoanComponent implements OnInit {
    * Submits Approve form.
    */
   submit() {
-    const local = this.settingsService.language.code;
+    const approveLoanFormData = this.approveLoanForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
     const approvedOnDate = this.approveLoanForm.value.approvedOnDate;
     const expectedDisbursementDate = this.approveLoanForm.value.expectedDisbursementDate;
-    this.approveLoanForm.patchValue({
-      approvedOnDate: this.datePipe.transform(approvedOnDate, dateFormat),
-      expectedDisbursementDate: this.datePipe.transform(expectedDisbursementDate, dateFormat)
-    });
-    const approveLoanFormData = {
-      ... this.approveLoanForm.value,
+    if (approveLoanFormData.approvedOnDate instanceof Date) {
+      approveLoanFormData.approvedOnDate = this.dateUtils.formatDate(approvedOnDate, dateFormat);
+    }
+    if (approveLoanFormData.expectedDisbursementDate instanceof Date) {
+      approveLoanFormData.expectedDisbursementDate = this.dateUtils.formatDate(expectedDisbursementDate, dateFormat);
+    }
+    const data = {
+      ...approveLoanFormData,
       dateFormat,
-      local
+      locale
     };
-    this.loanService.loanActionButtons(this.loanId, 'approve', approveLoanFormData).subscribe((response: any) => {
+    this.loanService.loanActionButtons(this.loanId, 'approve', data).subscribe((response: any) => {
       this.router.navigate(['../../general'], { relativeTo: this.route });
     });
   }

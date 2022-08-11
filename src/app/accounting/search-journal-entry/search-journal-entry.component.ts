@@ -3,7 +3,7 @@ import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { FormControl } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 /** rxjs Imports */
 import { merge } from 'rxjs';
@@ -11,9 +11,10 @@ import { tap, startWith, map, distinctUntilChanged, debounceTime} from 'rxjs/ope
 
 /** Custom Services */
 import { AccountingService } from '../accounting.service';
-
+import { SettingsService } from 'app/settings/settings.service';
 /** Custom Data Source */
 import { JournalEntriesDataSource } from './journal-entry.datasource';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Search journal entry component.
@@ -64,8 +65,12 @@ export class SearchJournalEntryComponent implements OnInit, AfterViewInit {
   transactionDateTo = new FormControl(new Date());
   /** Transaction ID form control. */
   transactionId = new FormControl();
+  /** Submitted on date from form control. */
+  submittedOnDateFrom = new FormControl();
+  /** Submitted on date to form control. */
+  submittedOnDateTo = new FormControl();
   /** Columns to be displayed in journal entries table. */
-  displayedColumns: string[] = ['id', 'officeName', 'transactionId', 'transactionDate', 'glAccountType', 'createdByUserName', 'glAccountCode', 'glAccountName', 'debit', 'credit'];
+  displayedColumns: string[] = ['id', 'officeName', 'transactionId', 'transactionDate', 'glAccountType', 'createdByUserName', 'submittedOnDate', 'glAccountCode', 'glAccountName', 'debit', 'credit'];
   /** Data source for journal entries table. */
   dataSource: JournalEntriesDataSource;
   /** Journal entries filter. */
@@ -88,19 +93,27 @@ export class SearchJournalEntryComponent implements OnInit, AfterViewInit {
     },
     {
       type: 'fromDate',
-      value: this.getDate(new Date(new Date().setMonth(new Date().getMonth() - 1)))
+      value: this.dateUtils.formatDate(new Date(new Date().setMonth(new Date().getMonth() - 1)), this.settingsService.dateFormat)
     },
     {
       type: 'toDate',
-      value: this.getDate(new Date())
+      value: this.dateUtils.formatDate(new Date(), this.settingsService.dateFormat)
+    },
+    {
+      type: 'submittedOnDateFrom',
+      value: ''
+    },
+    {
+      type: 'submittedOnDateTo',
+      value: ''
     },
     {
       type: 'dateFormat',
-      value: 'yyyy-MM-dd'
+      value: this.settingsService.dateFormat
     },
     {
       type: 'locale',
-      value: 'en'
+      value: this.settingsService.language.code
     }
   ];
 
@@ -113,8 +126,11 @@ export class SearchJournalEntryComponent implements OnInit, AfterViewInit {
    * Retrieves the offices and gl accounts data from `resolve`.
    * @param {AccountingService} accountingService Accounting Service.
    * @param {ActivatedRoute} route Activated Route.
+   * @param {SettingsService} settingsService Settings Service.
    */
   constructor(private accountingService: AccountingService,
+              private settingsService: SettingsService,
+              private dateUtils: Dates,
               private route: ActivatedRoute) {
     this.route.data.subscribe((data: {
         offices: any,
@@ -129,6 +145,7 @@ export class SearchJournalEntryComponent implements OnInit, AfterViewInit {
    * Sets filtered offices and gl accounts for autocomplete and journal entries table.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.setFilteredOffices();
     this.setFilteredGlAccounts();
     this.getJournalEntries();
@@ -177,7 +194,7 @@ export class SearchJournalEntryComponent implements OnInit, AfterViewInit {
         debounceTime(500),
         distinctUntilChanged(),
         tap((filterValue) => {
-          this.applyFilter(this.getDate(filterValue), 'fromDate');
+          this.applyFilter(this.dateUtils.formatDate(filterValue, this.settingsService.dateFormat), 'fromDate');
         })
       )
       .subscribe();
@@ -187,7 +204,27 @@ export class SearchJournalEntryComponent implements OnInit, AfterViewInit {
         debounceTime(500),
         distinctUntilChanged(),
         tap((filterValue) => {
-          this.applyFilter(this.getDate(filterValue), 'toDate');
+          this.applyFilter(this.dateUtils.formatDate(filterValue, this.settingsService.dateFormat), 'toDate');
+        })
+      )
+      .subscribe();
+
+      this.submittedOnDateFrom.valueChanges
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        tap((filterValue) => {
+          this.applyFilter(this.dateUtils.formatDate(filterValue, this.settingsService.dateFormat), 'submittedOnDateFrom');
+        })
+      )
+      .subscribe();
+
+    this.submittedOnDateTo.valueChanges
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        tap((filterValue) => {
+          this.applyFilter(this.dateUtils.formatDate(filterValue, this.settingsService.dateFormat), 'submittedOnDateTo');
         })
       )
       .subscribe();
@@ -290,25 +327,4 @@ export class SearchJournalEntryComponent implements OnInit, AfterViewInit {
     this.dataSource = new JournalEntriesDataSource(this.accountingService);
     this.dataSource.getJournalEntries(this.filterJournalEntriesBy, this.sort.active, this.sort.direction, this.paginator.pageIndex, this.paginator.pageSize);
   }
-
-  /**
-   * Gets the date from the passed timestamp.
-   *
-   * TODO: Update once language and date settings are setup.
-   *
-   * @param {any} timestamp Timestam from which date is to be extracted.
-   */
-  private getDate(timestamp: any) {
-    let day = timestamp.getDate();
-    let month = timestamp.getMonth() + 1;
-    const year = timestamp.getFullYear();
-    if (day < 10) {
-      day = `0${day}`;
-    }
-    if (month < 10) {
-      month = `0${month}`;
-    }
-    return `${year}-${month}-${day}`;
-  }
-
 }

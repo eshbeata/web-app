@@ -40,7 +40,7 @@
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field fxFlex="48%">
+      <mat-form-field fxFlex="48%" (click)="repaymentsPicker.open()">
         <mat-label>First repayment on</mat-label>
         <input matInput [min]="minDate" [max]="maxDate" [matDatepicker]="repaymentsPicker"
           formControlName="repaymentsStartingFromDate">
@@ -72,7 +72,7 @@
 
       <mat-form-field fxFlex="48%" *ngIf="loansAccountTermsForm.controls.repaymentFrequencyType.value == 2">
         <mat-label>Select On</mat-label>
-        <mat-select formControlName="repaymentFrequencyNthDayType" required>
+        <mat-select formControlName="repaymentFrequencyNthDayType">
           <mat-option
             *ngFor="let repaymentFrequencyNthDayType of repaymentFrequencyNthDayTypeData"
             [value]="repaymentFrequencyNthDayType.id">
@@ -83,7 +83,7 @@
 
       <mat-form-field fxFlex="48%" *ngIf="loansAccountTermsForm.controls.repaymentFrequencyType.value == 2">
         <mat-label>Select Day</mat-label>
-        <mat-select formControlName="repaymentFrequencyDayOfWeekType" required>
+        <mat-select formControlName="repaymentFrequencyDayOfWeekType">
           <mat-option
             *ngFor="let repaymentFrequencyDayOfWeekType of repaymentFrequencyDaysOfWeekTypeData"
             [value]="repaymentFrequencyDayOfWeekType.id">
@@ -92,7 +92,7 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field fxFlex="48%">
+      <mat-form-field fxFlex="48%" (click)="interestPicker.open()">
         <mat-label>Interest charged from</mat-label>
         <input matInput [min]="minDate" [max]="maxDate" [matDatepicker]="interestPicker"
           formControlName="interestChargedFromDate">
@@ -253,18 +253,6 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field fxFlex="48%"
-        *ngIf="loansAccountProductTemplate.isInterestRecalculationEnabled && loansAccountProductTemplate.interestRecalculationData.interestRecalculationCompoundingType.id != 0 && loansAccountProductTemplate.interestRecalculationData.recalculationCompoundingFrequencyType.id != 1">
-        <mat-label>Frequency Date for recalculation</mat-label>
-        <input matInput [min]="minDate" [max]="maxDate" [matDatepicker]="recalculationCompoundingFrequencyDatePicker"
-          formControlName="recalculationCompoundingFrequencyDate">
-        <mat-datepicker-toggle matSuffix [for]="recalculationCompoundingFrequencyDatePicker"></mat-datepicker-toggle>
-        <mat-datepicker #recalculationCompoundingFrequencyDatePicker></mat-datepicker>
-        <mat-error *ngIf="loansAccountTermsForm.controls.recalculationCompoundingFrequencyDate.hasError('required')">
-          Frequency Data for recalculation is <strong>required</strong>
-        </mat-error>
-      </mat-form-field>
-
     </ng-container>
 
     <mat-divider fxFlex="98%"></mat-divider>
@@ -324,6 +312,56 @@
       <span fxFlex="40%">Frequency Interval for recalculation</span>
       <span fxFlex="60%">{{ loansAccountProductTemplate?.interestRecalculationData.recalculationRestFrequencyInterval}}</span>
     </div>
+
+    <ng-container *ngIf="multiDisburseLoan">
+      <mat-divider fxFlex="98%"></mat-divider>
+      <h4 fxFlex="98%" class="mat-h4">Loan Tranche Details</h4>
+      <mat-form-field fxFlex="48%">
+        <mat-label>Maximum allowed outstanding balance</mat-label>
+        <input matInput required formControlName="loanTermFrequency">
+      </mat-form-field>
+      <span fxFlex *ngIf="!loansAccountProductTemplate?.product.disallowExpectedDisbursements">
+        <button type="button" mat-icon-button color="primary" (click)="addDisbursementDataEntry(disbursementData)">
+          <fa-icon icon="plus-circle" size="lg"></fa-icon>
+        </button>
+      </span>
+
+      <div fxFlexFill fxLayout="row wrap" fxLayout.lt-md="column" formArrayName="disbursementData"
+          *ngFor="let item of disbursementData.controls; let i = index;">
+
+          <div fxFlexFill fxLayout="row wrap" fxLayoutGap="2%" fxLayout.lt-md="column" [formGroupName]="i">
+
+            <mat-form-field fxFlex="48%" (click)="expectedDisbursementDatePicker.open()">
+              <mat-label>Expected disbursement on</mat-label>
+              <input matInput [required] ="multiDisburseLoan" [min]="minDate" [matDatepicker]="expectedDisbursementDatePicker"
+                formControlName="expectedDisbursementDate">
+              <mat-datepicker-toggle matSuffix [for]="expectedDisbursementDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #expectedDisbursementDatePicker></mat-datepicker>
+              <mat-error *ngIf="disbursementData.at(i).controls.expectedDisbursementDate.hasError('required')">
+                Expected disbursement on is <strong>required</strong>
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field fxFlex="43%">
+              <mat-label>Principal</mat-label>
+              <input type="number" matInput [required]="multiDisburseLoan" formControlName="principal">
+              <mat-error *ngIf="disbursementData.at(i).controls.principal.hasError('required')">
+                Principal is <strong>required</strong>
+              </mat-error>
+            </mat-form-field>
+
+            <span fxFlex>
+              <button type="button" mat-icon-button (click)="removeDisbursementDataEntry(disbursementData, i)">
+                <fa-icon icon="minus-circle" size="lg"></fa-icon>
+              </button>
+            </span>
+
+          </div>
+
+        </div>
+
+
+    </ng-container>
 
     <ng-container
       *ngIf="loansAccountProductTemplate?.isInterestRecalculationEnabled  && loansAccountProductTemplate?.interestRecalculationData.interestRecalculationCompoundingType.id != 0">

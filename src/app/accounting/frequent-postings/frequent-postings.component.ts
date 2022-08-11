@@ -5,7 +5,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 /** Custom Services */
 import { AccountingService } from '../accounting.service';
-
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 /**
  * Frequent Postings component.
  */
@@ -43,11 +44,14 @@ export class FrequentPostingsComponent implements OnInit {
    * Retrieves the offices, accounting rules, currencies and payment types data from `resolve`.
    * @param {FormBuilder} formBuilder Form Builder.
    * @param {AccountingService} accountingService Accounting Service.
+   * @param {SettingsService} settingsService Settings Service.
    * @param {ActivatedRoute} route Activated Route.
    * @param {Router} router Router for navigation.
    */
   constructor(private formBuilder: FormBuilder,
               private accountingService: AccountingService,
+              private settingsService: SettingsService,
+              private dateUtils: Dates,
               private route: ActivatedRoute,
               private router: Router) {
     this.route.data.subscribe((data: {
@@ -67,6 +71,7 @@ export class FrequentPostingsComponent implements OnInit {
    * Creates the frequent postings form and sets the affected gl entry form array.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createFrequentPostingsForm();
     this.setAffectedGLEntryForm();
   }
@@ -165,19 +170,10 @@ export class FrequentPostingsComponent implements OnInit {
     const journalEntry = this.frequentPostingsForm.value;
     journalEntry.accountingRule = journalEntry.accountingRule.id;
     // TODO: Update once language and date settings are setup
-    journalEntry.locale = 'en';
-    journalEntry.dateFormat = 'yyyy-MM-dd';
+    journalEntry.locale = this.settingsService.language.code;
+    journalEntry.dateFormat = this.settingsService.dateFormat;
     if (journalEntry.transactionDate instanceof Date) {
-      let day = journalEntry.transactionDate.getDate();
-      let month = journalEntry.transactionDate.getMonth() + 1;
-      const year = journalEntry.transactionDate.getFullYear();
-      if (day < 10) {
-        day = `0${day}`;
-      }
-      if (month < 10) {
-        month = `0${month}`;
-      }
-      journalEntry.transactionDate = `${year}-${month}-${day}`;
+      journalEntry.transactionDate = this.dateUtils.formatDate(journalEntry.transactionDate, this.settingsService.dateFormat);
     }
     this.accountingService.createJournalEntry(journalEntry).subscribe(response => {
       this.router.navigate(['../transactions/view', response.transactionId], { relativeTo: this.route });

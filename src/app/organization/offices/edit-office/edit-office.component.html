@@ -28,7 +28,7 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field (click)="openingDatePicker.open()">
             <mat-label>Opened On</mat-label>
             <input matInput [min]="minDate" [max]="maxDate" [matDatepicker]="openingDatePicker" required formControlName="openingDate">
             <mat-datepicker-toggle matSuffix [for]="openingDatePicker"></mat-datepicker-toggle>
@@ -40,7 +40,7 @@
 
           <mat-form-field>
             <mat-label>External ID</mat-label>
-            <input matInput formControlName="externalId" formControlName="externalId">
+            <input matInput formControlName="externalId">
           </mat-form-field>
 
         </div>

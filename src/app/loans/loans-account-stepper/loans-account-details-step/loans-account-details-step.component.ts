@@ -1,10 +1,10 @@
 /** Angular Imports */
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { SettingsService } from 'app/settings/settings.service';
 
 /** Custom Services */
 import { LoansService } from '../../loans.service';
-import { DatePipe } from '@angular/common';
 
 /**
  * Loans Account Details Step
@@ -22,7 +22,7 @@ export class LoansAccountDetailsStepComponent implements OnInit {
   /** Minimum date allowed. */
   minDate = new Date(2000, 0, 1);
   /** Maximum date allowed. */
-  maxDate = new Date();
+  maxDate = new Date(2100, 0, 1);
   /** Product Data */
   productData: any;
   /** Loan Officer Data */
@@ -44,14 +44,16 @@ export class LoansAccountDetailsStepComponent implements OnInit {
    * Sets loans account details form.
    * @param {FormBuilder} formBuilder Form Builder.
    * @param {LoansService} loansService Loans Service.
+   * @param {SettingsService} settingsService SettingsService
    */
   constructor(private formBuilder: FormBuilder,
     private loansService: LoansService,
-    private datePipe: DatePipe) {
+    private settingsService: SettingsService) {
     this.createLoansAccountDetailsForm();
   }
 
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.buildDependencies();
     if (this.loansAccountTemplate) {
       this.productData = this.loansAccountTemplate.productOptions;
@@ -78,7 +80,7 @@ export class LoansAccountDetailsStepComponent implements OnInit {
       'loanOfficerId': [''],
       'loanPurposeId': [''],
       'fundId': [''],
-      'submittedOnDate': ['', Validators.required],
+      'submittedOnDate': [new Date(), Validators.required],
       'expectedDisbursementDate': ['', Validators.required],
       'externalId': [''],
       'linkAccountId': [''],
@@ -90,9 +92,10 @@ export class LoansAccountDetailsStepComponent implements OnInit {
    * Fetches loans account product template on productId value changes
    */
   buildDependencies() {
-    const clientId = this.loansAccountTemplate.clientId;
+    const entityId = (this.loansAccountTemplate.clientId) ? this.loansAccountTemplate.clientId : this.loansAccountTemplate.group.id;
+    const isGroup = (this.loansAccountTemplate.clientId) ? false : true;
     this.loansAccountDetailsForm.get('productId').valueChanges.subscribe((productId: string) => {
-      this.loansService.getLoansAccountTemplateResource(clientId, productId).subscribe((response: any) => {
+      this.loansService.getLoansAccountTemplateResource(entityId, isGroup, productId).subscribe((response: any) => {
         this.loansAccountProductTemplate.emit(response);
         this.loanOfficerOptions = response.loanOfficerOptions;
         this.loanPurposeOptions = response.loanPurposeOptions;

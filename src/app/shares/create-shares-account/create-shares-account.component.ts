@@ -1,7 +1,6 @@
 /** Angular Imports */
 import { Component, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Custom Components */
 import { SharesAccountDetailsStepComponent } from '../shares-account-stepper/shares-account-details-step/shares-account-details-step.component';
@@ -10,6 +9,8 @@ import { SharesAccountChargesStepComponent } from '../shares-account-stepper/sha
 
 /** Custom Services */
 import { SharesService } from '../shares.service';
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Create Shares Account Component
@@ -37,13 +38,15 @@ export class CreateSharesAccountComponent {
    * Fetches shares account template from `resolve`
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {SharesService} sharesService Shares Service
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private route: ActivatedRoute,
               private router: Router,
-              private datePipe: DatePipe,
-              private sharesService: SharesService) {
+              private dateUtils: Dates,
+              private sharesService: SharesService,
+              private settingsService: SettingsService) {
     this.route.data.subscribe((data: { sharesAccountTemplate: any }) => {
       this.sharesAccountTemplate = data.sharesAccountTemplate;
     });
@@ -97,14 +100,14 @@ export class CreateSharesAccountComponent {
    */
   submit() {
     // TODO: Update once language and date settings are setup
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const sharesAccount = {
       ...this.sharesAccount,
       clientId: this.sharesAccountTemplate.clientId,
       charges: this.sharesAccount.charges.map((charge: any) => ({ chargeId: charge.chargeId, amount: charge.amount })),
-      applicationDate: this.datePipe.transform(this.sharesAccount.applicationDate, dateFormat),
-      submittedDate: this.datePipe.transform(this.sharesAccount.submittedDate, dateFormat),
+      applicationDate: this.dateUtils.formatDate(this.sharesAccount.applicationDate, dateFormat),
+      submittedDate: this.dateUtils.formatDate(this.sharesAccount.submittedDate, dateFormat),
       unitPrice: this.sharesAccountTermsForm.get('unitPrice').value,
       dateFormat,
       locale

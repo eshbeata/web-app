@@ -28,6 +28,7 @@ export class LoanProductAccountingStepComponent implements OnInit {
   expenseAccountData: any;
   liabilityAccountData: any;
   incomeAndLiabilityAccountData: any;
+  assetAndLiabilityAccountData: any;
 
   paymentFundSourceDisplayedColumns: string[] = ['paymentTypeId', 'fundSourceAccountId', 'actions'];
   feesPenaltyIncomeDisplayedColumns: string[] = ['chargeId', 'incomeAccountId', 'actions'];
@@ -47,6 +48,7 @@ export class LoanProductAccountingStepComponent implements OnInit {
     this.expenseAccountData = this.loanProductsTemplate.accountingMappingOptions.expenseAccountOptions || [];
     this.liabilityAccountData = this.loanProductsTemplate.accountingMappingOptions.liabilityAccountOptions || [];
     this.incomeAndLiabilityAccountData = this.incomeAccountData.concat(this.liabilityAccountData);
+    this.assetAndLiabilityAccountData = this.loanProductsTemplate.accountingMappingOptions.assetAndLiabilityAccountOptions || [];
 
     this.loanProductAccountingForm.patchValue({
       'accountingRule': this.loanProductsTemplate.accountingRule.id
@@ -71,6 +73,7 @@ export class LoanProductAccountingStepComponent implements OnInit {
           'incomeFromPenaltyAccountId': this.loanProductsTemplate.accountingMappings.incomeFromPenaltyAccount.id,
           'incomeFromRecoveryAccountId': this.loanProductsTemplate.accountingMappings.incomeFromRecoveryAccount.id,
           'writeOffAccountId': this.loanProductsTemplate.accountingMappings.writeOffAccount.id,
+          'goodwillCreditAccountId': this.loanProductsTemplate.accountingMappings.goodwillCreditAccount.id,
           'overpaymentLiabilityAccountId': this.loanProductsTemplate.accountingMappings.overpaymentLiabilityAccount.id,
           'advancedAccountingRules': (this.loanProductsTemplate.paymentChannelToFundSourceMappings || this.loanProductsTemplate.feeToIncomeAccountMappings || this.loanProductsTemplate.penaltyToIncomeAccountMappings) ? true : false
         });
@@ -105,6 +108,7 @@ export class LoanProductAccountingStepComponent implements OnInit {
           this.loanProductAccountingForm.addControl('incomeFromPenaltyAccountId', new FormControl('', Validators.required));
           this.loanProductAccountingForm.addControl('incomeFromRecoveryAccountId', new FormControl('', Validators.required));
           this.loanProductAccountingForm.addControl('writeOffAccountId', new FormControl('', Validators.required));
+          this.loanProductAccountingForm.addControl('goodwillCreditAccountId', new FormControl('', Validators.required));
           this.loanProductAccountingForm.addControl('overpaymentLiabilityAccountId', new FormControl('', Validators.required));
           this.loanProductAccountingForm.addControl('advancedAccountingRules', new FormControl(false));
 
@@ -129,6 +133,7 @@ export class LoanProductAccountingStepComponent implements OnInit {
           this.loanProductAccountingForm.removeControl('incomeFromPenaltyAccountId');
           this.loanProductAccountingForm.removeControl('incomeFromRecoveryAccountId');
           this.loanProductAccountingForm.removeControl('writeOffAccountId');
+          this.loanProductAccountingForm.removeControl('goodwillCreditAccountId');
           this.loanProductAccountingForm.removeControl('overpaymentLiabilityAccountId');
           this.loanProductAccountingForm.removeControl('advancedAccountingRules');
         }

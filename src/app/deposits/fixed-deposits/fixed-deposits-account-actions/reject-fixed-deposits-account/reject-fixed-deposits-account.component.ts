@@ -1,11 +1,12 @@
 /** Angular Imports */
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Dates } from 'app/core/utils/dates';
 
 /** Custom Services */
 import { FixedDepositsService } from 'app/deposits/fixed-deposits/fixed-deposits.service';
+import { SettingsService } from 'app/settings/settings.service';
 
 /**
  * Reject Fixed Deposits Account Component
@@ -29,15 +30,17 @@ export class RejectFixedDepositsAccountComponent implements OnInit {
   /**
    * @param {FormBuilder} formBuilder Form Builder
    * @param {FixedDepositsService} fixedDepositsService Fixed Deposits Service
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
               private fixedDepositsService: FixedDepositsService,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private route: ActivatedRoute,
-              private router: Router) {
+              private router: Router,
+              private settingsService: SettingsService) {
     this.accountId = this.route.parent.snapshot.params['fixedDepositAccountId'];
   }
 
@@ -45,6 +48,7 @@ export class RejectFixedDepositsAccountComponent implements OnInit {
    * Creates the reject fixed deposits form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createRejectFixedDepositsAccountForm();
   }
 
@@ -63,15 +67,15 @@ export class RejectFixedDepositsAccountComponent implements OnInit {
    * if successful redirects to the fixed deposit account.
    */
   submit() {
-    // TODO: Update once language and date settings are setup
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const rejectFixedDepositsAccountFormData = this.rejectFixedDepositsAccountForm.value;
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const prevRejectedOnDate: Date = this.rejectFixedDepositsAccountForm.value.rejectedOnDate;
-    this.rejectFixedDepositsAccountForm.patchValue({
-      rejectedOnDate: this.datePipe.transform(prevRejectedOnDate, dateFormat),
-    });
+    if (rejectFixedDepositsAccountFormData.rejectedOnDate instanceof Date) {
+      rejectFixedDepositsAccountFormData.rejectedOnDate = this.dateUtils.formatDate(prevRejectedOnDate, dateFormat);
+    }
     const data = {
-      ...this.rejectFixedDepositsAccountForm.value,
+      ...rejectFixedDepositsAccountFormData,
       dateFormat,
       locale
     };

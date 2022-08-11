@@ -2,10 +2,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Custom Services */
 import { SavingsService } from '../../savings.service';
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Create savings account transactions component.
@@ -45,14 +46,16 @@ export class SavingsAccountTransactionsComponent implements OnInit {
    * @param {FormBuilder} formBuilder Form Builder.
    * @param {SavingsService} savingsService Savings Service.
    * @param {ActivatedRoute} route Activated Route.
-   * @param {DatePipe} datePipe DatePipe.
+   * @param {Dates} dateUtils Date Utils.
    * @param {Router} router Router for navigation.
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
               private route: ActivatedRoute,
               private router: Router,
-              private datePipe: DatePipe,
-              private savingsService: SavingsService) {
+              private dateUtils: Dates,
+              private savingsService: SavingsService,
+              private settingsService: SettingsService) {
     this.route.data.subscribe((data: { savingsAccountActionData: any }) => {
       this.paymentTypeOptions = data.savingsAccountActionData.paymentTypeOptions;
     });
@@ -65,6 +68,7 @@ export class SavingsAccountTransactionsComponent implements OnInit {
    * Creates the Saving account transaction form when component loads.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createSavingAccountTransactionForm();
   }
 
@@ -104,16 +108,19 @@ export class SavingsAccountTransactionsComponent implements OnInit {
    * Method to submit the transaction details.
    */
   submit() {
+    const savingAccountTransactionFormData = this.savingAccountTransactionForm.value;
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const prevTransactionDate: Date = this.savingAccountTransactionForm.value.transactionDate;
-    // TODO: Update once language and date settings are setup
-    const dateFormat = 'dd-MM-yyyy';
-    this.savingAccountTransactionForm.patchValue({
-      transactionDate: this.datePipe.transform(prevTransactionDate, dateFormat)
-    });
-    const transactionData = this.savingAccountTransactionForm.value;
-    transactionData.locale = 'en';
-    transactionData.dateFormat = dateFormat;
-    this.savingsService.executeSavingsAccountTransactionsCommand(this.savingAccountId, this.transactionCommand, transactionData).subscribe(res => {
+    if (savingAccountTransactionFormData.transactionDate instanceof Date) {
+      savingAccountTransactionFormData.transactionDate = this.dateUtils.formatDate(prevTransactionDate, dateFormat);
+    }
+    const data = {
+      ...savingAccountTransactionFormData,
+      dateFormat,
+      locale
+    };
+    this.savingsService.executeSavingsAccountTransactionsCommand(this.savingAccountId, this.transactionCommand, data).subscribe(res => {
       this.router.navigate(['../../'], { relativeTo: this.route });
     });
   }

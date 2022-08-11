@@ -1,10 +1,5 @@
 /** Angular Imports */
 import { NgModule } from '@angular/core';
-import { DatePipe, CommonModule } from '@angular/common';
-import { MatOptionModule } from '@angular/material/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 /** Custom Modules */
 import { SharedModule } from '../shared/shared.module';
@@ -98,7 +93,21 @@ import { CreateProductMixComponent } from './products-mix/create-product-mix/cre
 import { EditProductMixComponent } from './products-mix/edit-product-mix/edit-product-mix.component';
 import { CreateChargeComponent } from './charges/create-charge/create-charge.component';
 import { EditFixedDepositProductComponent } from './fixed-deposit-products/edit-fixed-deposit-product/edit-fixed-deposit-product.component';
+import { CollateralsComponent } from './collaterals/collaterals.component';
+import { CreateCollateralComponent } from './collaterals/create-collateral/create-collateral.component';
+import { EditCollateralComponent } from './collaterals/edit-collateral/edit-collateral.component';
+import { ViewCollateralComponent } from './collaterals/view-collateral/view-collateral.component';
+import { ManageDelinquencyBucketsComponent } from './manage-delinquency-buckets/manage-delinquency-buckets.component';
+import { DelinquencyBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/delinquency-bucket.component';
+import { DelinquencyRangeComponent } from './manage-delinquency-buckets/delinquency-range/delinquency-range.component';
+import { CreateRangeComponent } from './manage-delinquency-buckets/delinquency-range/create-range/create-range.component';
+import { ViewRangeComponent } from './manage-delinquency-buckets/delinquency-range/view-range/view-range.component';
+import { EditRangeComponent } from './manage-delinquency-buckets/delinquency-range/edit-range/edit-range.component';
+import { ViewBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/view-bucket/view-bucket.component';
+import { CreateBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/create-bucket/create-bucket.component';
+import { EditBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/edit-bucket/edit-bucket.component';
 import { LoanProductScorecardFeaturesStepComponent } from './loan-products/loan-product-stepper/loan-product-scorecard-features-step/loan-product-scorecard-features-step.component';
+
 
 /**
  * Products Module
@@ -200,8 +209,21 @@ import { LoanProductScorecardFeaturesStepComponent } from './loan-products/loan-
     EditProductMixComponent,
     ManageTaxGroupsComponent,
     CreateChargeComponent,
-    EditFixedDepositProductComponent
+    EditFixedDepositProductComponent,
+    CollateralsComponent,
+    CreateCollateralComponent,
+    EditCollateralComponent,
+    ViewCollateralComponent,
+    ManageDelinquencyBucketsComponent,
+    DelinquencyBucketComponent,
+    DelinquencyRangeComponent,
+    CreateRangeComponent,
+    ViewRangeComponent,
+    EditRangeComponent,
+    ViewBucketComponent,
+    CreateBucketComponent,
+    EditBucketComponent
   ],
-  providers: [DatePipe]
+  providers: [ ]
 })
 export class ProductsModule { }

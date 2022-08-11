@@ -1,15 +1,11 @@
 /** Angular Imports */
 import { NgModule } from '@angular/core';
-import { BrowserModule, HammerModule } from '@angular/platform-browser';
+import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
-/** Tanslation Imports */
-import { TranslateModule } from '@ngx-translate/core';
-
 /** Environment Configuration */
-import { environment } from 'environments/environment';
 
 /** Main Component */
 import { WebAppComponent } from './web-app.component';
@@ -42,6 +38,9 @@ import { TasksModule } from './tasks/tasks.module';
 
 /** Main Routing Module */
 import { AppRoutingModule } from './app-routing.module';
+import { DatePipe, LocationStrategy } from '@angular/common';
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 /**
  * App Module
@@ -50,12 +49,18 @@ import { AppRoutingModule } from './app-routing.module';
  */
 @NgModule({
   imports: [
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: (http: HttpClient, locationStrategy: LocationStrategy) => {
+          return new TranslateHttpLoader(http, `${ window.location.protocol }//${ window.location.host }${locationStrategy.getBaseHref()}/assets/translations/`, '.json');
+        },
+        deps: [HttpClient, LocationStrategy]
+      }
+    }),
     BrowserModule,
     BrowserAnimationsModule,
-    HammerModule,
     HttpClientModule,
-    ServiceWorkerModule.register('./ngsw-worker.js', { enabled: environment.production }),
-    TranslateModule.forRoot(),
     CoreModule,
     HomeModule,
     LoginModule,
@@ -80,7 +85,7 @@ import { AppRoutingModule } from './app-routing.module';
     AppRoutingModule,
   ],
   declarations: [WebAppComponent, NotFoundComponent],
-  providers: [],
+  providers: [DatePipe],
   bootstrap: [WebAppComponent]
 })
 export class AppModule { }

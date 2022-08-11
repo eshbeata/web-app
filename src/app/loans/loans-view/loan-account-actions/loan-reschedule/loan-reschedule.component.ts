@@ -2,11 +2,10 @@ import { Component, OnInit, Input } from '@angular/core';
 import { LoansService } from 'app/loans/loans.service';
 import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
-import { subscribeOn } from 'rxjs/operators';
 
 /** Custom Services */
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 @Component({
   selector: 'mifosx-loan-reschedule',
@@ -41,12 +40,13 @@ export class LoanRescheduleComponent implements OnInit {
     private loanService: LoansService,
     private route: ActivatedRoute,
     private router: Router,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private settingsService: SettingsService) {
       this.loanId = this.route.parent.snapshot.params['loanId'];
     }
 
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.codes = this.dataObject.rescheduleReasons;
     this.setRescheduleLoanForm();
   }
@@ -67,21 +67,28 @@ export class LoanRescheduleComponent implements OnInit {
   }
 
   submit() {
-    const rescheduleFromDate = this.rescheduleLoanForm.value.rescheduleFromDate;
-    const adjustedDueDate = this.rescheduleLoanForm.value.adjustedDueDate;
-    const submittedOnDate = this.rescheduleLoanForm.value.submittedOnDate;
+    const rescheduleLoanFormData = this.rescheduleLoanForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
-
-    this.rescheduleLoanForm.patchValue({
-      rescheduleFromDate: this.datePipe.transform(rescheduleFromDate, dateFormat),
-      adjustedDueDate: this.datePipe.transform(adjustedDueDate, dateFormat),
-      submittedOnDate: this.datePipe.transform(submittedOnDate, dateFormat)
-    });
-    const rescheduleForm = this.rescheduleLoanForm.value;
-    rescheduleForm.locale = this.settingsService.language.code;
-    rescheduleForm.dateFormat = dateFormat;
-    rescheduleForm.loanId = this.loanId;
-    this.loanService.submitRescheduleData(rescheduleForm).subscribe((response: any) => {
+    const prevRescheduleFromDate = this.rescheduleLoanForm.value.rescheduleFromDate;
+    const prevAdjustedDueDate = this.rescheduleLoanForm.value.adjustedDueDate;
+    const prevSubmittedOnDate = this.rescheduleLoanForm.value.submittedOnDate;
+    if (prevRescheduleFromDate instanceof Date) {
+      rescheduleLoanFormData.rescheduleFromDate = this.dateUtils.formatDate(prevRescheduleFromDate, dateFormat);
+    }
+    if (prevAdjustedDueDate instanceof Date) {
+      rescheduleLoanFormData.adjustedDueDate = this.dateUtils.formatDate(prevAdjustedDueDate, dateFormat);
+    }
+    if (prevSubmittedOnDate instanceof Date) {
+      rescheduleLoanFormData.submittedOnDate = this.dateUtils.formatDate(prevSubmittedOnDate, dateFormat);
+    }
+    const data = {
+      ...rescheduleLoanFormData,
+      dateFormat,
+      locale
+    };
+    data.loanId = this.loanId;
+    this.loanService.submitRescheduleData(data).subscribe((response: any) => {
 
       // TODO: needs to be updated
       // mentioned in Community App:

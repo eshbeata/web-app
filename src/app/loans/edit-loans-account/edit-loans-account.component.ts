@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
 import { LoansService } from '../loans.service';
 import { LoansAccountDetailsStepComponent } from '../loans-account-stepper/loans-account-details-step/loans-account-details-step.component';
 import { LoansAccountTermsStepComponent } from '../loans-account-stepper/loans-account-terms-step/loans-account-terms-step.component';
@@ -8,7 +7,11 @@ import { LoansAccountChargesStepComponent } from '../loans-account-stepper/loans
 
 /** Custom Services */
 import { SettingsService } from 'app/settings/settings.service';
+
+import { Dates } from 'app/core/utils/dates';
+
 import { LoansAccountScorecardStepComponent } from '../loans-account-stepper/loans-account-scorecard-step/loans-account-scorecard-step.component';
+
 
 /**
  * Edit Loans
@@ -36,13 +39,13 @@ export class EditLoansAccountComponent implements OnInit {
    * Sets loans account edit form.
    * @param {route} ActivatedRoute Activated Route.
    * @param {router} Router Router.
-   * @param {datePipe} DatePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {loansService} LoansService Loans Service
    * @param {SettingsService} settingsService Settings Service
    */
   constructor(private route: ActivatedRoute,
     private router: Router,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private loansService: LoansService,
     private settingsService: SettingsService
   ) {
@@ -109,36 +112,38 @@ export class EditLoansAccountComponent implements OnInit {
       charges: this.loansAccount.charges.map((charge: any) => ({
         chargeId: charge.id,
         amount: charge.amount,
-        dueDate: charge.dueDate && this.datePipe.transform(charge.dueDate, dateFormat),
+        dueDate: charge.dueDate && this.dateUtils.formatDate(charge.dueDate, dateFormat),
       })),
       collateral: this.loansAccount.collateral.map((collateralEle: any) => ({
         type: collateralEle.type,
         value: collateralEle.value,
         description: collateralEle.description
       })),
-      interestChargedFromDate: this.datePipe.transform(this.loansAccount.interestChargedFromDate, dateFormat),
-      repaymentsStartingFromDate: this.datePipe.transform(this.loansAccount.repaymentsStartingFromDate, dateFormat),
-      submittedOnDate: this.datePipe.transform(this.loansAccount.submittedOnDate, dateFormat),
-      expectedDisbursementDate: this.datePipe.transform(this.loansAccount.expectedDisbursementDate, dateFormat),
+      interestChargedFromDate: this.dateUtils.formatDate(this.loansAccount.interestChargedFromDate, dateFormat),
+      repaymentsStartingFromDate: this.dateUtils.formatDate(this.loansAccount.repaymentsStartingFromDate, dateFormat),
+      submittedOnDate: this.dateUtils.formatDate(this.loansAccount.submittedOnDate, dateFormat),
+      expectedDisbursementDate: this.dateUtils.formatDate(this.loansAccount.expectedDisbursementDate, dateFormat),
       dateFormat,
       locale,
       loanType
     };
-
+    delete loansAccountData.isValid;
     if (loansAccountData.syncRepaymentsWithMeeting) {
       loansAccountData.calendarId = this.loansAccountProductTemplate.calendarOptions[0].id;
       delete loansAccountData.syncRepaymentsWithMeeting;
     }
 
     if (loansAccountData.recalculationRestFrequencyDate) {
-      loansAccountData.recalculationRestFrequencyDate = this.datePipe.transform(this.loansAccount.recalculationRestFrequencyDate, dateFormat);
+
+      loansAccountData.recalculationRestFrequencyDate = this.dateUtils.formatDate(this.loansAccount.recalculationRestFrequencyDate, dateFormat);
     }
 
     if (loansAccountData.recalculationCompoundingFrequencyDate) {
-      loansAccountData.recalculationCompoundingFrequencyDate = this.datePipe.transform(this.loansAccount.recalculationCompoundingFrequencyDate, dateFormat);
+      loansAccountData.recalculationCompoundingFrequencyDate = this.dateUtils.formatDate(this.loansAccount.recalculationCompoundingFrequencyDate, dateFormat);
       if (loansAccountData.recalculationCompoundingFrequencyDate === null) {
         delete loansAccountData.recalculationCompoundingFrequencyDate;
       }
+
     }
 
     if (loansAccountData.interestCalculationPeriodType === 0) {
@@ -147,7 +152,6 @@ export class EditLoansAccountComponent implements OnInit {
     if (!(loansAccountData.isFloatingInterestRate === false)) {
       delete loansAccountData.isFloatingInterestRate;
     }
-
     this.loansService.updateLoansAccount(this.loanId, loansAccountData).subscribe((response: any) => {
       this.router.navigate(['../'], { relativeTo: this.route });
     });

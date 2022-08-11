@@ -2,11 +2,11 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, Validators, FormGroup, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 /** Custom Service. */
 import { LoansService } from 'app/loans/loans.service';
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Disburse To Savings component.
@@ -32,18 +32,18 @@ export class DisburseLoanAccountComponent implements OnInit {
    * @param {FormBuilder} formBuilder FormBuilder.
    * @param {ActivatedRoute} route ActivatedRoute.
    * @param {Router} router Router.
-   * @param {DatePipe} datePipe DatePipe.
    * @param {LoansService} loanService Loan Service.
    * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
               private route: ActivatedRoute,
               private router: Router,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private loanService: LoansService,
               private settingsService: SettingsService) { }
 
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.setDisbursementToSavingsForm();
   }
 
@@ -65,16 +65,20 @@ export class DisburseLoanAccountComponent implements OnInit {
    * Submit Disburse Form.
    */
   submit() {
-    const actualDisbursementDate = this.disbursementForm.value.actualDisbursementDate;
+    const disbursementLoanFormData = this.disbursementForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
-    this.disbursementForm.patchValue({
-      actualDisbursementDate: this.datePipe.transform(actualDisbursementDate, dateFormat)
-    });
+    const prevActualDisbursementDate: Date = this.disbursementForm.value.actualDisbursementDate;
+    if (disbursementLoanFormData.actualDisbursementDate instanceof Date) {
+      disbursementLoanFormData.actualDisbursementDate = this.dateUtils.formatDate(prevActualDisbursementDate, dateFormat);
+    }
+    const data = {
+      ...disbursementLoanFormData,
+      dateFormat,
+      locale
+    };
     const loanId = this.route.parent.snapshot.params['loanId'];
-    const disbursementForm = this.disbursementForm.value;
-    disbursementForm.locale = this.settingsService.language.code;
-    disbursementForm.dateFormat = dateFormat;
-    this.loanService.loanActionButtons(loanId, 'disbursetosavings', disbursementForm).subscribe((response: any) => {
+    this.loanService.loanActionButtons(loanId, 'disbursetosavings', data).subscribe((response: any) => {
       this.router.navigate(['../../general'], {relativeTo: this.route});
     });
   }

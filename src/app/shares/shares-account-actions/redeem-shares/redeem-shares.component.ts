@@ -1,11 +1,12 @@
 /** Angular Imports */
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 /** Custom Services */
 import { SharesService } from 'app/shares/shares.service';
+import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Redeem Shares Component
@@ -32,15 +33,17 @@ export class RedeemSharesComponent implements OnInit {
   /**
    * @param {FormBuilder} formBuilder Form Builder
    * @param {SharesService} sharesService Shares Service
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
+   * @param {SettingsService} settingsService Settings Service.
    */
   constructor(private formBuilder: FormBuilder,
               private sharesService: SharesService,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private route: ActivatedRoute,
-              private router: Router) {
+              private router: Router,
+              private settingsService: SettingsService) {
     this.accountId = this.route.parent.snapshot.params['shareAccountId'];
     this.route.data.subscribe((data: { shareAccountActionData: any }) => {
       this.sharesAccountData = data.shareAccountActionData;
@@ -53,6 +56,7 @@ export class RedeemSharesComponent implements OnInit {
    * in clients view upon using a common resolver.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createRedeemSharesAccountForm();
     this.redeemSharesForm.get('unitPrice').patchValue(this.sharesAccountData.currentMarketPrice || '');
   }
@@ -73,15 +77,15 @@ export class RedeemSharesComponent implements OnInit {
    * if successful redirects to the share account.
    */
   submit() {
-    // TODO: Update once language and date settings are setup
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const redeemSharesFormData = this.redeemSharesForm.value;
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const prevRequestedDate: Date = this.redeemSharesForm.value.requestedDate;
-    this.redeemSharesForm.patchValue({
-      requestedDate: this.datePipe.transform(prevRequestedDate, dateFormat),
-    });
+    if (redeemSharesFormData.requestedDate instanceof Date) {
+      redeemSharesFormData.requestedDate = this.dateUtils.formatDate(prevRequestedDate, dateFormat);
+    }
     const data = {
-      ...this.redeemSharesForm.value,
+      ...redeemSharesFormData,
       unitPrice: this.redeemSharesForm.get('unitPrice').value,
       dateFormat,
       locale

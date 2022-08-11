@@ -5,8 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 /** Custom Services */
 import { LoansService } from 'app/loans/loans.service';
-import { DatePipe } from '@angular/common';
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Disburse Loan Option
@@ -37,14 +37,13 @@ export class DisburseComponent implements OnInit {
    * @param {LoansService} loanService Loan Service.
    * @param {ActivatedRoute} route Activated Route.
    * @param {Router} router Router for navigation.
-   * @param {DatePipe} datePipe Date Pipe.
    * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
     private loanService: LoansService,
     private route: ActivatedRoute,
     private router: Router,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private settingsService: SettingsService) {
     this.loanId = this.route.parent.snapshot.params['loanId'];
   }
@@ -55,6 +54,7 @@ export class DisburseComponent implements OnInit {
    * and initialize with the required values
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createDisbursementLoanForm();
     this.setDisbursementLoanDetails();
   }
@@ -101,16 +101,19 @@ export class DisburseComponent implements OnInit {
 
   /** Submits the disbursement form */
   submit() {
-    const prevActualDisbursementDate: Date = this.disbursementLoanForm.value.actualDisbursementDate;
-    // TODO: Update once language and date settings are setup
+    const disbursementLoanFormData = this.disbursementLoanForm.value;
+    const locale = this.settingsService.language.code;
     const dateFormat = this.settingsService.dateFormat;
-    this.disbursementLoanForm.patchValue({
-      actualDisbursementDate: this.datePipe.transform(prevActualDisbursementDate, dateFormat)
-    });
-    const disbursementLoanData = this.disbursementLoanForm.value;
-    disbursementLoanData.locale = this.settingsService.language.code;
-    disbursementLoanData.dateFormat = dateFormat;
-    this.loanService.loanActionButtons(this.loanId, 'disburse', disbursementLoanData )
+    const prevActualDisbursementDate: Date = this.disbursementLoanForm.value.actualDisbursementDate;
+    if (disbursementLoanFormData.actualDisbursementDate instanceof Date) {
+      disbursementLoanFormData.actualDisbursementDate = this.dateUtils.formatDate(prevActualDisbursementDate, dateFormat);
+    }
+    const data = {
+      ...disbursementLoanFormData,
+      dateFormat,
+      locale
+    };
+    this.loanService.loanActionButtons(this.loanId, 'disburse', data )
       .subscribe((response: any) => {
         this.router.navigate(['../../general'], { relativeTo: this.route });
       });

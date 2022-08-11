@@ -1,11 +1,12 @@
 /** Angular Imports */
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Dates } from 'app/core/utils/dates';
 
 /** Custom Services */
 import { SavingsService } from 'app/savings/savings.service';
+import { SettingsService } from 'app/settings/settings.service';
 
 /**
  * Activate Fixed Deposits Account Component
@@ -30,15 +31,17 @@ export class ActivateFixedDepositsAccountComponent implements OnInit {
    * Fixed deposits endpoint is not supported so using Savings endpoint.
    * @param {FormBuilder} formBuilder Form Builder
    * @param {SavingsService} savingsService Savings Service
-   * @param {DatePipe} datePipe Date Pipe
+   * @param {Dates} dateUtils Date Utils
    * @param {ActivatedRoute} route Activated Route
    * @param {Router} router Router
+   * @param {SettingsService} settingsService Settings Service
    */
   constructor(private formBuilder: FormBuilder,
               private savingsService: SavingsService,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private route: ActivatedRoute,
-              private router: Router) {
+              private router: Router,
+              private settingsService: SettingsService) {
     this.accountId = this.route.parent.snapshot.params['fixedDepositAccountId'];
   }
 
@@ -46,6 +49,7 @@ export class ActivateFixedDepositsAccountComponent implements OnInit {
    * Creates the activate fixed deposits form.
    */
   ngOnInit() {
+    this.maxDate = this.settingsService.businessDate;
     this.createActivateFixedDepositsAccountForm();
   }
 
@@ -63,15 +67,15 @@ export class ActivateFixedDepositsAccountComponent implements OnInit {
    * if successful redirects to the fixed deposit account.
    */
   submit() {
-    // TODO: Update once language and date settings are setup
-    const locale = 'en';
-    const dateFormat = 'dd MMMM yyyy';
+    const activateFixedDepositsAccountFormData = this.activateFixedDepositsAccountForm.value;
+    const locale = this.settingsService.language.code;
+    const dateFormat = this.settingsService.dateFormat;
     const prevActivatedOnDate: Date = this.activateFixedDepositsAccountForm.value.activatedOnDate;
-    this.activateFixedDepositsAccountForm.patchValue({
-      activatedOnDate: this.datePipe.transform(prevActivatedOnDate, dateFormat),
-    });
+    if (activateFixedDepositsAccountFormData.activatedOnDate instanceof Date) {
+      activateFixedDepositsAccountFormData.activatedOnDate = this.dateUtils.formatDate(prevActivatedOnDate, dateFormat);
+    }
     const data = {
-      ...this.activateFixedDepositsAccountForm.value,
+      ...activateFixedDepositsAccountFormData,
       dateFormat,
       locale
     };

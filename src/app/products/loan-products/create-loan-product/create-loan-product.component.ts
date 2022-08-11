@@ -1,6 +1,8 @@
+/** Angular Imports */
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
+/** Custom Components */
 import { LoanProductDetailsStepComponent } from '../loan-product-stepper/loan-product-details-step/loan-product-details-step.component';
 import { LoanProductCurrencyStepComponent } from '../loan-product-stepper/loan-product-currency-step/loan-product-currency-step.component';
 import { LoanProductTermsStepComponent } from '../loan-product-stepper/loan-product-terms-step/loan-product-terms-step.component';
@@ -9,7 +11,11 @@ import { LoanProductChargesStepComponent } from '../loan-product-stepper/loan-pr
 import { LoanProductAccountingStepComponent } from '../loan-product-stepper/loan-product-accounting-step/loan-product-accounting-step.component';
 import { LoanProductScorecardFeaturesStepComponent } from '../loan-product-stepper/loan-product-scorecard-features-step/loan-product-scorecard-features-step.component';
 
+/** Custom Services */
 import { ProductsService } from 'app/products/products.service';
+
+import { SettingsService } from 'app/settings/settings.service';
+
 @Component({
   selector: 'mifosx-create-loan-product',
   templateUrl: './create-loan-product.component.html',
@@ -28,11 +34,22 @@ export class CreateLoanProductComponent implements OnInit {
   loanProductsTemplate: any;
   accountingRuleData = ['None', 'Cash', 'Accrual (periodic)', 'Accrual (upfront)'];
 
+   /**
+    * @param {ActivatedRoute} route Activated Route.
+    * @param {ProductsService} productsService Product Service.
+    * @param {SettingsService} settingsService Settings Service
+    * @param {Router} router Router for navigation.
+    */
+
   constructor(private route: ActivatedRoute,
               private productsService: ProductsService,
+              private settingsService: SettingsService,
               private router: Router) {
     this.route.data.subscribe((data: { loanProductsTemplate: any }) => {
       this.loanProductsTemplate = data.loanProductsTemplate;
+      const assetAccountData = this.loanProductsTemplate.accountingMappingOptions.assetAccountOptions || [];
+      const liabilityAccountData = this.loanProductsTemplate.accountingMappingOptions.liabilityAccountOptions || [];
+      this.loanProductsTemplate.accountingMappingOptions.assetAndLiabilityAccountOptions = assetAccountData.concat(liabilityAccountData);
     });
   }
 
@@ -83,19 +100,19 @@ export class CreateLoanProductComponent implements OnInit {
 
   submit() {
     // TODO: Update once language and date settings are setup
-    const dateFormat = 'yyyy-MM-dd';
+    const dateFormat = this.settingsService.dateFormat;
     const loanProduct = {
       ...this.loanProduct,
       charges: this.loanProduct.charges.map((charge: any) => ({ id: charge.id })),
       dateFormat,
-      locale: 'en'
+      locale: this.settingsService.language.code
     };
     delete loanProduct.allowAttributeConfiguration;
     delete loanProduct.advancedAccountingRules;
     this.productsService.createLoanProduct(loanProduct)
       .subscribe((response: any) => {
         this.router.navigate(['../', response.resourceId], { relativeTo: this.route });
-    });
+      });
   }
 
 }

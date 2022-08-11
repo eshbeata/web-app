@@ -62,6 +62,9 @@ const routes: Routes = [
       {
       path: ':loanId',
       data: { title: extract('Loan View'), routeParamBreadcrumb: 'loanId' },
+      resolve: {
+        loanDetailsData: LoanDetailsResolver
+      },
       children: [
         {
           path: '',
@@ -234,7 +237,7 @@ const routes: Routes = [
         {
           path: 'actions/:action',
           component: LoanAccountActionsComponent,
-          data: { title: extract('Loan Account Actions'), routeParamBreadcrumb: 'action' },
+          data: { title: extract('Loan Account Actions'), breadcrumb: 'action', routeParamBreadcrumb: 'action' },
           resolve: {
             actionButtonData: LoanActionButtonResolver
           }

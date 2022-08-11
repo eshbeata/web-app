@@ -9,11 +9,11 @@ import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.componen
 import { LoansAccountAddCollateralDialogComponent } from 'app/loans/custom-dialog/loans-account-add-collateral-dialog/loans-account-add-collateral-dialog.component';
 
 /** Custom Services */
-import { DatePipe } from '@angular/common';
 import { DatepickerBase } from 'app/shared/form-dialog/formfield/model/datepicker-base';
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
 import { InputBase } from 'app/shared/form-dialog/formfield/model/input-base';
 import { SettingsService } from 'app/settings/settings.service';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Recurring Deposit Account Charges Step
@@ -31,8 +31,10 @@ export class LoansAccountChargesStepComponent implements OnInit, OnChanges {
   @Input() loansAccountTemplate: any;
   // @Input() loansAccountFormValid: LoansAccountFormValid
   @Input() loansAccountFormValid: boolean;
-  // @Input collateralOptionsL Collateral Options
+  // @Input collateralOptions: Collateral Options
   @Input() collateralOptions: any;
+  // @Input loanPrincipal: Loan Principle
+  @Input() loanPrincipal: any;
 
   /** Charges Data */
   chargeData: any;
@@ -47,23 +49,27 @@ export class LoansAccountChargesStepComponent implements OnInit, OnChanges {
   /** Columns to be displayed in overdue charges table. */
   overdueChargesDisplayedColumns: string[] = ['name', 'type', 'amount', 'collectedon'];
   /** Columns to be displayed in collateral table. */
-  loanCollateralDisplayedColumns: string[] = ['type', 'value', 'description', 'action'];
+  loanCollateralDisplayedColumns: string[] = ['type', 'value', 'totalValue', 'totalCollateralValue', 'action'];
   /** Component is pristine if there has been no changes by user interaction */
   pristine = true;
+  /** Check if value of collateral added  is more than principal amount */
+  isCollateralSufficient = false;
+  /** Total value of all collateral added to a loan */
+  totalCollateralValue: any = 0;
 
   /**
    * Loans Account Charges Form Step
    * @param {dialog} MatDialog Mat Dialog
-   * @param {datePipe} DatePipe DatePipe
+   * @param {Dates} dateUtils Date Utils
    * @param {SettingsService} settingsService Settings Service
    */
   constructor(public dialog: MatDialog,
-    private datePipe: DatePipe,
+    private dateUtils: Dates,
     private settingsService: SettingsService) {
   }
 
   ngOnInit() {
-    if ( this.loansAccountTemplate.charges) {
+    if (this.loansAccountTemplate.charges) {
       this.chargesDataSource = this.loansAccountTemplate.charges.map((charge: any) => ({ ...charge, id: charge.chargeId })) || [];
     }
   }
@@ -143,7 +149,7 @@ export class LoansAccountChargesStepComponent implements OnInit, OnChanges {
       if (response.data) {
         let newCharge: any;
         const dateFormat = this.settingsService.dateFormat;
-        const date = this.datePipe.transform(response.data.value.date, dateFormat);
+        const date = this.dateUtils.formatDate(response.data.value.date, dateFormat);
         switch (charge.chargeTimeType.value) {
           case 'Specified due date':
           case 'Weekly Fee':
@@ -207,33 +213,53 @@ export class LoansAccountChargesStepComponent implements OnInit, OnChanges {
     });
   }
 
-  // TODO: Needs to be completed
+  /**
+   * Add a Collateral to the loan
+   */
   addCollateral() {
     const addCollateralDialogRef = this.dialog.open(LoansAccountAddCollateralDialogComponent, {
       data: { collateralOptions: this.collateralOptions }
     });
+    console.log(this.collateralOptions);
     addCollateralDialogRef.afterClosed().subscribe((response: any) => {
-      if (response.addCollateralForm) {
+      console.log(this.loanPrincipal);
+      if (response.data) {
         const collateralData = {
-          type: response.addCollateralForm.value.type,
-          value: response.addCollateralForm.value.value,
-          description: response.addCollateralForm.value.description
+          type: response.data.value.collateral,
+          value: response.data.value.quantity,
         };
-        this.collateralDataSource = this.collateralDataSource.concat(collateralData);
 
+        this.totalCollateralValue += collateralData.type.pctToBase * collateralData.type.basePrice * collateralData.value / 100;
+        this.collateralDataSource = this.collateralDataSource.concat(collateralData);
+        this.collateralOptions = this.collateralOptions.filter((user: any) => user.collateralId !== response.data.value.collateral.collateralId);
+        if (this.loanPrincipal < this.totalCollateralValue) {
+          this.isCollateralSufficient = true;
+        } else {
+          this.isCollateralSufficient = false;
+        }
       }
     });
   }
-
+  /**
+   * Delete a added collateral from loan
+   * @param id ID od the collateral to be deleted
+   */
   deleteCollateral(id: any) {
     const deleteCollateralDialogRef = this.dialog.open(DeleteDialogComponent, {
       data: { deleteContext: `collateral` }
     });
     deleteCollateralDialogRef.afterClosed().subscribe((response: any) => {
       if (response.delete) {
-        this.collateralDataSource.splice(this.collateralDataSource.indexOf(id), 1);
+        const removed: any = this.collateralDataSource.splice(id, 1);
+        this.collateralOptions = this.collateralOptions.concat(removed[0].type);
+        this.totalCollateralValue -= removed[0].type.pctToBase * removed[0].type.basePrice * removed[0].value / 100;
         this.collateralDataSource = this.collateralDataSource.concat([]);
         this.pristine = false;
+        if (this.loanPrincipal < this.totalCollateralValue) {
+          this.isCollateralSufficient = true;
+        } else {
+          this.isCollateralSufficient = false;
+        }
       }
     });
   }

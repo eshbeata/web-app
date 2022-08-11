@@ -3,10 +3,10 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource, MatTable } from '@angular/material/table';
-import { DatePipe } from '@angular/common';
 
 /** Custom Services */
 import { SavingsService } from 'app/savings/savings.service';
+import { SettingsService } from 'app/settings/settings.service';
 
 /** Custom Dialogs */
 import { FormDialogComponent } from 'app/shared/form-dialog/form-dialog.component';
@@ -18,6 +18,7 @@ import { DeleteDialogComponent } from 'app/shared/delete-dialog/delete-dialog.co
 import { FormfieldBase } from 'app/shared/form-dialog/formfield/model/formfield-base';
 import { InputBase } from 'app/shared/form-dialog/formfield/model/input-base';
 import { DatepickerBase } from 'app/shared/form-dialog/formfield/model/datepicker-base';
+import { Dates } from 'app/core/utils/dates';
 
 /**
  * Charges Tab Component
@@ -62,13 +63,15 @@ export class ChargesTabComponent implements OnInit {
    * @param {ActivatedRoute} route Activated Route.
    * @param {Router} router Router for navigation.
    * @param {MatDialog} dialog Dialog reference.
-   * @param {DatePipe} datePipe DatePipe.
+   * @param {Dates} dateUtils Date Utils.
+   * @param {SettingsService} settingsService Settings Service.
    */
   constructor(private savingsService: SavingsService,
               private route: ActivatedRoute,
-              private datePipe: DatePipe,
+              private dateUtils: Dates,
               private router: Router,
-              public dialog: MatDialog) {
+              public dialog: MatDialog,
+              private settingsService: SettingsService) {
     this.route.parent.data.subscribe((data: { fixedDepositsAccountData: any }) => {
       this.fixedDepositsAccountData = data.fixedDepositsAccountData;
       this.chargesData = this.fixedDepositsAccountData.charges;
@@ -124,11 +127,11 @@ export class ChargesTabComponent implements OnInit {
     const payChargeDialogRef = this.dialog.open(FormDialogComponent, { data });
     payChargeDialogRef.afterClosed().subscribe((response: any) => {
       if (response.data) {
-        const locale = 'en';
-        const dateFormat = 'dd MMMM yyyy';
+        const locale = this.settingsService.language.code;
+        const dateFormat = this.settingsService.dateFormat;
         const dataObject = {
           ...response.data.value,
-          dueDate: this.datePipe.transform(response.data.value.dueDate, dateFormat),
+          dueDate: this.dateUtils.formatDate(response.data.value.dueDate, dateFormat),
           dateFormat,
           locale
         };
@@ -194,8 +197,8 @@ export class ChargesTabComponent implements OnInit {
     const editChargeDialogRef = this.dialog.open(FormDialogComponent, { data });
     editChargeDialogRef.afterClosed().subscribe((response: any) => {
       if (response.data) {
-        const locale = 'en';
-        const dateFormat = 'dd MMMM yyyy';
+        const locale = this.settingsService.language.code;
+        const dateFormat = this.settingsService.dateFormat;
         const dataObject = {
           ...response.data.value,
           dateFormat,

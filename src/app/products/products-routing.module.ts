@@ -50,6 +50,10 @@ import { ViewDividendComponent } from './share-products/view-dividend/view-divid
 import { CreateTaxGroupComponent } from './manage-tax-groups/create-tax-group/create-tax-group.component';
 import { EditTaxGroupComponent } from './manage-tax-groups/edit-tax-group/edit-tax-group.component';
 import { CreateProductMixComponent } from './products-mix/create-product-mix/create-product-mix.component';
+import { CollateralsComponent } from './collaterals/collaterals.component';
+import { CreateCollateralComponent } from './collaterals/create-collateral/create-collateral.component';
+import { EditCollateralComponent } from './collaterals/edit-collateral/edit-collateral.component';
+import { ViewCollateralComponent } from './collaterals/view-collateral/view-collateral.component';
 
 /** Custom Resolvers */
 import { LoanProductsResolver } from './loan-products/loan-products.resolver';
@@ -94,6 +98,20 @@ import { EditProductMixComponent } from './products-mix/edit-product-mix/edit-pr
 import { ChargesTemplateAndResolver } from './charges/charges-template-and-resolver';
 import { EditFixedDepositProductComponent } from './fixed-deposit-products/edit-fixed-deposit-product/edit-fixed-deposit-product.component';
 import { FixedDepositProductAndTemplateResolver } from './fixed-deposit-products/edit-fixed-deposit-product/fixed-deposit-product-and-template.resolver';
+import { CollateralResolver } from './collaterals/collateral.resolver';
+import { CollateralsResolver } from './collaterals/collaterals.resolver';
+import { CollateralTemplateResolver } from './collaterals/collaterals-template.resolver';
+import { ManageDelinquencyBucketsComponent } from './manage-delinquency-buckets/manage-delinquency-buckets.component';
+import { DelinquencyBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/delinquency-bucket.component';
+import { DelinquencyRangeComponent } from './manage-delinquency-buckets/delinquency-range/delinquency-range.component';
+import { DelinquencyBucketComponentsResolver } from './manage-delinquency-buckets/delinquency-bucket/delinquency-bucket.component.resolver';
+import { DelinquencyRangeComponentsResolver } from './manage-delinquency-buckets/delinquency-range/delinquency-range.component.resolver';
+import { ViewRangeComponent } from './manage-delinquency-buckets/delinquency-range/view-range/view-range.component';
+import { EditRangeComponent } from './manage-delinquency-buckets/delinquency-range/edit-range/edit-range.component';
+import { CreateRangeComponent } from './manage-delinquency-buckets/delinquency-range/create-range/create-range.component';
+import { CreateBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/create-bucket/create-bucket.component';
+import { EditBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/edit-bucket/edit-bucket.component';
+import { ViewBucketComponent } from './manage-delinquency-buckets/delinquency-bucket/view-bucket/view-bucket.component';
 
 /** Products Routes */
 const routes: Routes = [
@@ -128,13 +146,16 @@ const routes: Routes = [
             {
               path: ':id',
               data: { title: extract('View Loan Product'), routeParamBreadcrumb: 'id' },
+              resolve: {
+                loanProduct: LoanProductResolver
+              },
               children: [
                 {
                   path: '',
                   component: ViewLoanProductComponent,
                   resolve: {
                     loanProduct: LoanProductResolver
-                  },
+                  }
                 },
                 {
                   path: 'edit',
@@ -170,6 +191,9 @@ const routes: Routes = [
             {
               path: ':id',
               data: { title: extract('View Saving Product'), routeParamBreadcrumb: 'id' },
+              resolve: {
+                savingProduct: SavingProductResolver
+              },
               children: [
                 {
                   path: '',
@@ -212,6 +236,9 @@ const routes: Routes = [
             {
               path: ':id',
               data: { title: extract('View Share Product'), routeParamBreadcrumb: 'id' },
+              resolve: {
+                shareProduct: ShareProductResolver
+              },
               children: [
                 {
                   path: '',
@@ -291,13 +318,16 @@ const routes: Routes = [
                 {
                   path: ':id',
                   data: { title: extract('View Tax Component'), routeParamBreadcrumb: 'id' },
+                  resolve: {
+                    taxComponent: TaxComponentResolver
+                  },
                   children: [
                     {
                       path: '',
                       component: ViewTaxComponentComponent,
                       resolve: {
                         taxComponent: TaxComponentResolver
-                      }
+                      },
                     },
                     {
                       path: 'edit',
@@ -333,13 +363,16 @@ const routes: Routes = [
                 {
                   path: ':id',
                   data: { title: extract('View Tax Group'), routeParamBreadcrumb: 'id' },
+                  resolve: {
+                    taxGroup: TaxGroupResolver
+                  },
                   children: [
                     {
                       path: '',
                       component: ViewTaxGroupComponent,
                       resolve: {
                         taxGroup: TaxGroupResolver
-                      }
+                      },
                     },
                     {
                       path: 'edit',
@@ -347,6 +380,104 @@ const routes: Routes = [
                       component: EditTaxGroupComponent,
                       resolve: {
                         taxGroup: EditTaxGroupResolver
+                      }
+                    },
+                  ]
+                }
+              ]
+            },
+          ]
+        },
+        {
+          path: 'delinquency-bucket-configurations',
+          data: { title:  extract('Manage Delinquency Bucket Configurations'), breadcrumb: 'Manage Delinquency Bucket Configurations' },
+          children: [
+            {
+              path: '',
+              component: ManageDelinquencyBucketsComponent,
+            },
+            {
+              path: 'ranges',
+              data: { title: extract('Manage Delinquency Ranges'), breadcrumb: 'Delinquency Ranges'},
+              children: [
+                {
+                  path: '',
+                  component: DelinquencyRangeComponent,
+                  resolve: {
+                    delinquencyRanges: DelinquencyRangeComponentsResolver
+                  }
+                },
+                {
+                  path: 'create',
+                  component: CreateRangeComponent,
+                  data: { title: extract('Create Delinquency Range'), breadcrumb: 'Create' }
+                },
+                {
+                  path: ':rangeId',
+                  data: { title: extract('View Delinquency Range'), routeParamBreadcrumb: 'id' },
+                  resolve: {
+                    delinquencyRange: DelinquencyRangeComponentsResolver
+                  },
+                  children: [
+                    {
+                      path: '',
+                      component: ViewRangeComponent,
+                      resolve: {
+                        delinquencyRange: DelinquencyRangeComponentsResolver
+                      },
+                    },
+                    {
+                      path: 'edit',
+                      data: { title: extract('Edit Delinquency Range'), breadcrumb: 'Edit', routeParamBreadcrumb: false },
+                      component: EditRangeComponent,
+                      resolve: {
+                        delinquencyRange: DelinquencyRangeComponentsResolver
+                      }
+                    },
+                  ]
+                }
+              ]
+            },
+            {
+              path: 'buckets',
+              data: { title: extract('Manage Delinquency Bucket'), breadcrumb: 'Delinquency Buckets'},
+              children: [
+                {
+                  path: '',
+                  component: DelinquencyBucketComponent,
+                  resolve: {
+                    delinquencyBuckets: DelinquencyBucketComponentsResolver
+                  }
+                },
+                {
+                  path: 'create',
+                  component: CreateBucketComponent,
+                  data: { title: extract('Create Delinquency Bucket'), breadcrumb: 'Create' },
+                  resolve: {
+                    delinquencyRanges: DelinquencyRangeComponentsResolver
+                  }
+                },
+                {
+                  path: ':bucketId',
+                  data: { title: extract('View Delinquency Bucket'), routeParamBreadcrumb: 'id' },
+                  resolve: {
+                    delinquencyBucket: DelinquencyBucketComponentsResolver
+                  },
+                  children: [
+                    {
+                      path: '',
+                      component: ViewBucketComponent,
+                      resolve: {
+                        delinquencyBucket: DelinquencyBucketComponentsResolver
+                      },
+                    },
+                    {
+                      path: 'edit',
+                      data: { title: extract('Edit Delinquency Bucket'), breadcrumb: 'Edit', routeParamBreadcrumb: false },
+                      component: EditBucketComponent,
+                      resolve: {
+                        delinquencyBucket: DelinquencyBucketComponentsResolver,
+                        delinquencyRanges: DelinquencyRangeComponentsResolver
                       }
                     },
                   ]
@@ -377,6 +508,9 @@ const routes: Routes = [
             {
               path: ':id',
               data: { title: extract('View Recurring Deposit Product'), routeParamBreadcrumb: 'id' },
+              resolve: {
+                recurringDepositProduct: RecurringDepositProductResolver
+              },
               children: [
                 {
                   path: '',
@@ -420,6 +554,9 @@ const routes: Routes = [
             {
               path: ':id',
               data: { title: extract('View Fixed Deposit Product'), routeParamBreadcrumb: 'id' },
+              resolve: {
+                fixedDepositProduct: FixedDepositProductResolver,
+              },
               children: [
                 {
                   path: '',
@@ -463,13 +600,16 @@ const routes: Routes = [
             {
               path: ':id',
               data: { title: extract('View Product Mix'), routeParamBreadcrumb: 'id'},
+              resolve: {
+                productMix: ViewProductMixResolver
+              },
               children: [
                 {
                   path: '',
                   component: ViewProductMixComponent,
                   resolve: {
                     productMix: ViewProductMixResolver
-                  }
+                  },
                 },
                 {
                   path: 'edit',
@@ -502,13 +642,16 @@ const routes: Routes = [
             {
               path: ':id',
               data: { title: extract('View Floating Rate'), routeParamBreadcrumb: 'id' },
+              resolve: {
+                floatingRate: FloatingRateResolver
+              },
               children: [
                 {
                   path: '',
                   component: ViewFloatingRateComponent,
                   resolve: {
                     floatingRate: FloatingRateResolver
-                  }
+                  },
                 },
                 {
                   path: 'edit',
@@ -544,13 +687,16 @@ const routes: Routes = [
             {
               path: ':id',
               data: { title: extract('View Charges'), routeParamBreadcrumb: 'id' },
+              resolve: {
+                charge: ChargeResolver
+              },
               children: [
                 {
                   path: '',
                   component: ViewChargeComponent,
                   resolve: {
                     charge: ChargeResolver
-                  }
+                  },
                 },
                 {
                   path: 'edit',
@@ -558,6 +704,52 @@ const routes: Routes = [
                   data: { title: extract('Edit Charge'), breadcrumb: 'Edit', routeParamBreadcrumb: false },
                   resolve: {
                     chargesTemplate: ChargesTemplateAndResolver
+                  }
+                },
+              ]
+            },
+          ]
+        },
+        {
+          path: 'collaterals',
+          data: { title: extract('Collaterals'), breadcrumb: 'Collaterals' },
+          children: [
+            {
+              path: 'create',
+              component: CreateCollateralComponent,
+              data: { title: extract('Create Collateral'), breadcrumb: 'Create Collateral' },
+              resolve: {
+                collateralTemplate: CollateralTemplateResolver
+              }
+            },
+            {
+              path: '',
+              component: CollateralsComponent,
+              resolve: {
+                collaterals: CollateralsResolver
+              }
+            },
+            {
+              path: ':id',
+              data: { title: extract('View Collateral'), routeParamBreadcrumb: 'id' },
+              resolve: {
+                collateral: CollateralResolver
+              },
+              children: [
+                {
+                  path: '',
+                  component: ViewCollateralComponent,
+                  resolve: {
+                    collateral: CollateralResolver
+                  },
+                },
+                {
+                  path: 'edit',
+                  component: EditCollateralComponent,
+                  data: { title: extract('Edit Collateral'), breadcrumb: 'Edit', routeParamBreadcrumb: false },
+                  resolve: {
+                    collateralTemplate: CollateralTemplateResolver,
+                    collateral: CollateralResolver
                   }
                 },
               ]
@@ -617,7 +809,12 @@ const routes: Routes = [
     EditTaxGroupResolver,
     ProductsMixTemplateResolver,
     FixedDepositProductAndTemplateResolver,
-    FloatingRatesResolver
+    FloatingRatesResolver,
+    CollateralResolver,
+    CollateralsResolver,
+    CollateralTemplateResolver,
+    DelinquencyRangeComponentsResolver,
+    DelinquencyBucketComponentsResolver
   ]
 })
 export class ProductsRoutingModule { }
